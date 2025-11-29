@@ -7,7 +7,14 @@ import threading
 import time
 from typing import Optional, Dict, Any, Callable, Tuple
 import glfw
-from OpenGL.GL import *
+# 尝试导入OpenGL，如果失败则提供错误信息
+try:
+    from OpenGL.GL import *
+    print("[窗口管理] OpenGL导入成功")
+except ImportError as e:
+    print(f"[窗口管理] OpenGL导入失败: {e}")
+    print("[窗口管理] 请确保已正确安装PyOpenGL库")
+    sys.exit(1)
 import numpy as np
 from core.config import config_manager
 from core.events import EventBus, Event, EventType
@@ -47,24 +54,88 @@ class WindowManager:
         # 设置窗口提示
         glfw.window_hint(glfw.RESIZABLE, glfw.TRUE)
         
-        # 设置OpenGL版本为3.3核心模式，提高兼容性
-        glfw.window_hint(glfw.CONTEXT_VERSION_MAJOR, 3)
-        glfw.window_hint(glfw.CONTEXT_VERSION_MINOR, 3)
-        glfw.window_hint(glfw.OPENGL_PROFILE, glfw.OPENGL_CORE_PROFILE)
+        # 尝试设置OpenGL版本，从高到低尝试多个版本
+        opengl_versions = [
+            (3, 3, glfw.OPENGL_CORE_PROFILE),  # 首先尝试3.3核心模式
+            (3, 2, glfw.OPENGL_CORE_PROFILE),  # 然后尝试3.2核心模式
+            (3, 1, glfw.OPENGL_ANY_PROFILE),   # 尝试3.1
+            (3, 0, glfw.OPENGL_ANY_PROFILE),   # 尝试3.0
+            (2, 1, glfw.OPENGL_ANY_PROFILE),   # 最后尝试2.1
+        ]
+
+        context_created = False
+        for major, minor, profile in opengl_versions:
+            try:
+                glfw.window_hint(glfw.CONTEXT_VERSION_MAJOR, major)
+                glfw.window_hint(glfw.CONTEXT_VERSION_MINOR, minor)
+                if major >= 3 and minor >= 2:
+                    glfw.window_hint(glfw.OPENGL_PROFILE, profile)
+
+                # 尝试创建窗口
+                test_window = glfw.create_window(100, 100, "Test", None, None)
+                if test_window:
+                    # 测试窗口创建成功，销毁它并使用这些设置
+                    glfw.destroy_window(test_window)
+                    print(f"[窗口管理] 成功设置OpenGL {major}.{minor} {'核心' if profile == glfw.OPENGL_CORE_PROFILE else '兼容'}模式")
+                    context_created = True
+                    break
+            except Exception as e:
+                print(f"[窗口管理] 尝试OpenGL {major}.{minor}失败: {e}")
+                continue
+
+        if not context_created:
+            print("[窗口管理] 所有OpenGL版本尝试失败，使用默认设置")
+            # 重置所有提示，使用系统默认设置
+            glfw.window_hint(glfw.CONTEXT_VERSION_MAJOR, 1)
+            glfw.window_hint(glfw.CONTEXT_VERSION_MINOR, 0)
+            glfw.window_hint(glfw.OPENGL_PROFILE, glfw.OPENGL_ANY_PROFILE)
         
         # 如果是MacOS，需要设置向前兼容
         if sys.platform == "darwin":
             glfw.window_hint(glfw.OPENGL_FORWARD_COMPAT, glfw.TRUE)
 
         # 创建窗口
-        self._window = glfw.create_window(width, height, title, None, None)
-        if not self._window:
-            print("[窗口管理] 创建窗口失败")
-            glfw.terminate()
-            return None
+        try:
+            self._window = glfw.create_window(width, height, title, None, None)
+            if not self._window:
+                print("[窗口管理] 创建窗口失败")
+                glfw.terminate()
+                return None
+            print(f"[窗口管理] 窗口创建成功: {width}x{height}")
+        except Exception as e:
+            print(f"[窗口管理] 创建窗口时发生错误: {e}")
+            print("[窗口管理] 尝试使用基本设置重新创建窗口")
+
+            # 重置所有窗口提示到最基本设置
+            glfw.default_window_hints()
+            glfw.window_hint(glfw.RESIZABLE, glfw.TRUE)
+
+            # 尝试使用最基本设置创建窗口
+            try:
+                self._window = glfw.create_window(width, height, title, None, None)
+                if not self._window:
+                    print("[窗口管理] 使用基本设置创建窗口仍然失败")
+                    glfw.terminate()
+                    return None
+                print(f"[窗口管理] 使用基本设置创建窗口成功: {width}x{height}")
+            except Exception as e2:
+                print(f"[窗口管理] 使用基本设置创建窗口仍然失败: {e2}")
+                glfw.terminate()
+                return None
 
         # 设置窗口为当前上下文
         glfw.make_context_current(self._window)
+
+        # 检查OpenGL版本
+        try:
+            gl_version = glGetString(GL_VERSION).decode('utf-8')
+            gl_vendor = glGetString(GL_VENDOR).decode('utf-8')
+            gl_renderer = glGetString(GL_RENDERER).decode('utf-8')
+            print(f"[窗口管理] OpenGL版本: {gl_version}")
+            print(f"[窗口管理] OpenGL供应商: {gl_vendor}")
+            print(f"[窗口管理] OpenGL渲染器: {gl_renderer}")
+        except Exception as e:
+            print(f"[窗口管理] 获取OpenGL信息失败: {e}")
 
         # 设置窗口回调
         glfw.set_window_size_callback(self._window, self._on_window_resize)
@@ -77,7 +148,12 @@ class WindowManager:
         glfw.set_window_user_pointer(self._window, self)
 
         # 初始化渲染器
-        vector_field_renderer.initialize()
+        try:
+            vector_field_renderer.initialize()
+            print("[窗口管理] 渲染器初始化成功")
+        except Exception as e:
+            print(f"[窗口管理] 渲染器初始化失败: {e}")
+            print("[窗口管理] 尝试使用兼容模式继续运行")
 
         # 更新状态
         self._state_manager.update({
