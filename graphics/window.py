@@ -209,6 +209,37 @@ class WindowManager:
 
     def _on_cursor_pos(self, window: int, xpos: float, ypos: float) -> None:
         """鼠标位置回调"""
+        # 处理中键拖动视图
+        if self._state_manager.get("mouse_middle_pressed", False):
+            # 获取初始状态
+            start_x = self._state_manager.get("mouse_middle_start_x", 0.0)
+            start_y = self._state_manager.get("mouse_middle_start_y", 0.0)
+            cam_start_x = self._state_manager.get("cam_start_x", 0.0)
+            cam_start_y = self._state_manager.get("cam_start_y", 0.0)
+            cam_zoom = self._state_manager.get("cam_zoom", 1.0)
+
+            # 计算鼠标移动距离并转换为世界坐标
+            dx = (start_x - xpos) / cam_zoom
+            dy = (start_y - ypos) / cam_zoom
+
+            # 更新相机位置
+            new_cam_x = cam_start_x + dx
+            new_cam_y = cam_start_y + dy
+
+            # 更新状态
+            self._state_manager.update({
+                "cam_x": new_cam_x,
+                "cam_y": new_cam_y,
+                "view_changed": True
+            })
+
+            # 发布视图变更事件
+            self._event_bus.publish(Event(
+                EventType.VIEW_CHANGED,
+                {"cam_x": new_cam_x, "cam_y": new_cam_y},
+                "WindowManager"
+            ))
+
         # 获取窗口尺寸
         width, height = glfw.get_window_size(window)
 
@@ -280,6 +311,21 @@ class WindowManager:
         # 获取网格坐标
         grid_x = self._state_manager.get("grid_x", 0)
         grid_y = self._state_manager.get("grid_y", 0)
+
+        # 处理中键拖动视图功能
+        if button == glfw.MOUSE_BUTTON_MIDDLE:  # 中键
+            if action == glfw.PRESS:  # 按下
+                # 记录鼠标中键按下状态和初始位置
+                self._state_manager.update({
+                    "mouse_middle_pressed": True,
+                    "mouse_middle_start_x": xpos,
+                    "mouse_middle_start_y": ypos,
+                    "cam_start_x": self._state_manager.get("cam_x", 0.0),
+                    "cam_start_y": self._state_manager.get("cam_y", 0.0)
+                })
+            elif action == glfw.RELEASE:  # 释放
+                # 清除鼠标中键按下状态
+                self._state_manager.set("mouse_middle_pressed", False)
 
         # 获取网格数据
         grid = app_core.grid_manager.grid
