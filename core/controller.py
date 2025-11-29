@@ -454,6 +454,22 @@ class AppController:
 
         # 渲染向量场
         vector_field_renderer.render_vector_field(grid, 1.0, cam_x, cam_y, cam_zoom, width, height)
+        
+        # 识别并渲染向量中心
+        show_centers = _config.get("vector_field.show_centers", True)
+        if show_centers and grid is not None:
+            # 获取配置参数
+            threshold = _config.get("vector_field.center_threshold", 0.5)
+            min_distance = _config.get("vector_field.center_min_distance", 10)
+            
+            # 识别向量中心
+            from compute.vector_field import find_vector_centers
+            centers = find_vector_centers(grid, threshold, min_distance)
+            
+            # 渲染中心标记
+            if centers:
+                cell_size = _config.get("rendering.cell_size", 1.0)
+                vector_field_renderer.render_vector_centers(centers, cell_size, cam_x, cam_y, cam_zoom, width, height)
 
         # 渲染工具栏
         if self._toolbar is not None and hasattr(self._toolbar, "render"):

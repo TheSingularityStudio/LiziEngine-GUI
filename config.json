@@ -16,8 +16,13 @@
     "enable_vector_average": false,
     "reverse_vector": false,
     "enable_vector_normalization": false,
-    "enable_vector_smoothing": false,
-    "vector_smooth_factor": 0.8
+    "enable_vector_smoothing": true,
+    "vector_smooth_factor": 0.8,
+    "show_centers": true,
+    "center_color": [1.0, 0.2, 0.2],
+    "center_size": 5,
+    "center_threshold": 0.5,
+    "center_min_distance": 10
   },
   "rendering": {
     "background_color": [0.1, 0.1, 0.1, 1.0],

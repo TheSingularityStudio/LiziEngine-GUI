@@ -309,6 +309,73 @@ void main() {
         glBindBuffer(GL_ARRAY_BUFFER, 0)
         glUseProgram(0)
 
+    def render_vector_centers(self, centers: List[Tuple[int, int]], cell_size: float = 1.0,
+                          cam_x: float = 0.0, cam_y: float = 0.0, cam_zoom: float = 1.0,
+                          viewport_width: int = 800, viewport_height: int = 600) -> None:
+        """渲染向量中心标记"""
+        if not self._initialized:
+            self.initialize()
+            
+        if not centers:
+            return
+            
+        # 获取配置
+        center_color = config_manager.get("vector_field.center_color", [1.0, 0.2, 0.2])
+        center_size = config_manager.get("vector_field.center_size", 5)
+        
+        # 准备顶点数据 - 每个中心点绘制一个十字
+        vertices = []
+        
+        for x, y in centers:
+            # 转换为世界坐标
+            wx = x * cell_size
+            wy = y * cell_size
+            
+            # 水平线
+            vertices.extend([wx - center_size, wy, center_color[0], center_color[1], center_color[2]])
+            vertices.extend([wx + center_size, wy, center_color[0], center_color[1], center_color[2]])
+            
+            # 垂直线
+            vertices.extend([wx, wy - center_size, center_color[0], center_color[1], center_color[2]])
+            vertices.extend([wx, wy + center_size, center_color[0], center_color[1], center_color[2]])
+        
+        # 绑定VAO和VBO
+        glBindVertexArray(self._vao)
+        glBindBuffer(GL_ARRAY_BUFFER, self._vbo)
+        
+        # 上传顶点数据
+        vertices_array = np.array(vertices, dtype=np.float32)
+        glBufferData(GL_ARRAY_BUFFER, vertices_array.nbytes, vertices_array, GL_DYNAMIC_DRAW)
+        
+        # 设置顶点属性
+        pos_loc = self._shader_program.get_attribute_location("a_pos")
+        col_loc = self._shader_program.get_attribute_location("a_col")
+        
+        if pos_loc >= 0:
+            glEnableVertexAttribArray(pos_loc)
+            glVertexAttribPointer(pos_loc, 2, GL_FLOAT, GL_FALSE, 5 * 4, ctypes.c_void_p(0))
+        
+        if col_loc >= 0:
+            glEnableVertexAttribArray(col_loc)
+            glVertexAttribPointer(col_loc, 3, GL_FLOAT, GL_FALSE, 5 * 4, ctypes.c_void_p(2 * 4))
+        
+        # 使用着色器程序
+        self._shader_program.use()
+        
+        # 设置uniform变量
+        half_w = (viewport_width / 2.0) / cam_zoom
+        half_h = (viewport_height / 2.0) / cam_zoom
+        self._shader_program.set_uniform_vec2("u_center", (cam_x, cam_y))
+        self._shader_program.set_uniform_vec2("u_half", (half_w, half_h))
+        
+        # 绘制中心标记
+        glDrawArrays(GL_LINES, 0, len(vertices) // 5)
+        
+        # 解绑
+        glBindVertexArray(0)
+        glBindBuffer(GL_ARRAY_BUFFER, 0)
+        glUseProgram(0)
+    
     def render_background(self) -> None:
         """渲染背景"""
         # 获取配置
@@ -370,3 +437,9 @@ def render_grid(grid: np.ndarray, cell_size: float = 1.0,
 def render_background() -> None:
     """便捷函数：渲染背景"""
     vector_field_renderer.render_background()
+
+def render_vector_centers(centers: List[Tuple[int, int]], cell_size: float = 1.0,
+                         cam_x: float = 0.0, cam_y: float = 0.0, cam_zoom: float = 1.0,
+                         viewport_width: int = 800, viewport_height: int = 600) -> None:
+    """便捷函数：渲染向量中心标记"""
+    vector_field_renderer.render_vector_centers(centers, cell_size, cam_x, cam_y, cam_zoom, viewport_width, viewport_height)

@@ -245,6 +245,83 @@ class VectorFieldCalculator:
 
         return grid
 
+    def find_vector_centers(self, grid: np.ndarray, threshold: float = 0.5, min_distance: int = 10) -> List[Tuple[int, int]]:
+        """
+        识别向量场的中心点（向量汇聚或发散的地方）
+        
+        参数:
+            grid: 向量网格
+            threshold: 识别中心的阈值，值越大识别越严格
+            min_distance: 中心点之间的最小距离，避免重复识别
+            
+        返回:
+            中心点坐标列表 [(x1, y1), (x2, y2), ...]
+        """
+        if grid is None or not isinstance(grid, np.ndarray):
+            return []
+            
+        h, w = grid.shape[:2]
+        centers = []
+        
+        # 获取向量分量
+        vx = grid[:, :, 0]
+        vy = grid[:, :, 1]
+        
+        # 计算向量大小
+        magnitude = np.sqrt(vx**2 + vy**2)
+        
+        # 计算向量散度，用于识别汇聚/发散点
+        # 使用中心差分法计算散度
+        div = np.zeros((h, w), dtype=np.float32)
+        
+        # 内部点
+        div[1:-1, 1:-1] = (vx[1:-1, 2:] - vx[1:-1, :-2]) / 2.0 + (vy[2:, 1:-1] - vy[:-2, 1:-1]) / 2.0
+        
+        # 边界点使用前向/后向差分
+        div[0, 1:-1] = (vx[0, 2:] - vx[0, :-2]) / 2.0 + (vy[1, 1:-1] - vy[0, 1:-1])
+        div[-1, 1:-1] = (vx[-1, 2:] - vx[-1, :-2]) / 2.0 + (vy[-1, 1:-1] - vy[-2, 1:-1])
+        div[1:-1, 0] = (vx[1:-1, 1] - vx[1:-1, 0]) + (vy[2:, 0] - vy[:-2, 0]) / 2.0
+        div[1:-1, -1] = (vx[1:-1, -1] - vx[1:-1, -2]) + (vy[2:, -1] - vy[:-2, -1]) / 2.0
+        
+        # 识别极值点（散度最大和最小的点）
+        max_div = np.max(div)
+        min_div = np.min(div)
+        
+        # 根据阈值识别中心点
+        if max_div > threshold:
+            # 发散点（散度为正）
+            max_points = np.where(div > max_div * threshold)
+            for y, x in zip(max_points[0], max_points[1]):
+                # 确保向量大小足够大
+                if magnitude[y, x] > 0.1:
+                    # 检查与已有中心的距离
+                    is_far_enough = True
+                    for cx, cy in centers:
+                        if np.sqrt((x - cx)**2 + (y - cy)**2) < min_distance:
+                            is_far_enough = False
+                            break
+                    
+                    if is_far_enough:
+                        centers.append((x, y))
+        
+        if min_div < -threshold:
+            # 汇聚点（散度为负）
+            min_points = np.where(div < min_div * threshold)
+            for y, x in zip(min_points[0], min_points[1]):
+                # 确保向量大小足够大
+                if magnitude[y, x] > 0.1:
+                    # 检查与已有中心的距离
+                    is_far_enough = True
+                    for cx, cy in centers:
+                        if np.sqrt((x - cx)**2 + (y - cy)**2) < min_distance:
+                            is_far_enough = False
+                            break
+                    
+                    if is_far_enough:
+                        centers.append((x, y))
+        
+        return centers
+
 # 全局向量场计算器实例
 vector_calculator = VectorFieldCalculator()
 
@@ -260,3 +337,7 @@ def update_grid_with_adjacent_sum(grid: np.ndarray, include_self: bool = None) -
 def create_vector_grid(width: int = 640, height: int = 480, default: Tuple[float, float] = (0, 0)) -> np.ndarray:
     """便捷函数：创建向量网格"""
     return vector_calculator.create_vector_grid(width, height, default)
+
+def find_vector_centers(grid: np.ndarray, threshold: float = 0.5, min_distance: int = 10) -> List[Tuple[int, int]]:
+    """便捷函数：识别向量中心点"""
+    return vector_calculator.find_vector_centers(grid, threshold, min_distance)
