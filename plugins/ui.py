@@ -13,6 +13,12 @@ class UIManager:
         self.window = window
         self.vector_calculator = vector_calculator
         self.enable_update = True
+        
+        # 向量场方向状态：True表示朝外，False表示朝内
+        self.vector_field_direction = True
+        
+        # 向量场模式：True表示径向模式（发散），False表示切线模式（旋转）
+        self.vector_field_pattern = True
 
         # 保持最后鼠标位置以便拖拽计算（像素坐标）
         self._last_mouse_x = None
@@ -20,7 +26,7 @@ class UIManager:
         # 标记列表，存储浮点网格坐标 {'x':float,'y':float}
         self.markers = []
 
-    def register_callbacks(self, grid: np.ndarray, on_space=None, on_r=None, on_g=None, on_c=None, on_u=None):
+    def register_callbacks(self, grid: np.ndarray, on_space=None, on_r=None, on_g=None, on_c=None, on_u=None, on_v=None):
         self._grid = grid
 
         def on_space_press():
@@ -73,6 +79,22 @@ class UIManager:
                     print(f"[错误] on_u 回调异常: {e}")
             self.enable_update = not self.enable_update
             print(f"[示例] 实时更新已{'开启' if self.enable_update else '关闭'}")
+            
+        def on_v_press():
+            if callable(on_v):
+                try:
+                    on_v()
+                    return
+                except Exception as e:
+                    print(f"[错误] on_v 回调异常: {e}")
+            self.vector_field_direction = not self.vector_field_direction
+            direction = "朝外" if self.vector_field_direction else "朝内"
+            print(f"[示例] 向量场方向已切换为: {direction}")
+            
+        def on_h_press():
+            self.vector_field_pattern = not self.vector_field_pattern
+            pattern = "径向模式（发散）" if self.vector_field_pattern else "切线模式（旋转）"
+            print(f"[示例] 向量场模式已切换为: {pattern}")
 
         def on_mouse_left_press():
             try:
@@ -97,11 +119,18 @@ class UIManager:
                     return
 
                 radius = 8
-                magnitude = 0.8
+                magnitude = 20 if self.vector_field_direction else -20
 
-                print(f"[示例] 在网格位置放置向量场: ({gx}, {gy}), radius={radius}, mag={magnitude}")
+                direction = "朝外" if self.vector_field_direction else "朝内"
+                pattern = "径向" if self.vector_field_pattern else "切线"
+                print(f"[示例] 在网格位置放置{pattern}向量场: ({gx}, {gy}), radius={radius}, mag={magnitude}, 方向={direction}")
 
-                self.vector_calculator.create_radial_pattern(grid, center=(gx, gy), radius=radius, magnitude=magnitude)
+                if self.vector_field_pattern:
+                    # 径向模式（发散）
+                    self.vector_calculator.create_radial_pattern(grid, center=(gx, gy), radius=radius, magnitude=magnitude)
+                else:
+                    # 切线模式（旋转）
+                    self.vector_calculator.create_tangential_pattern(grid, center=(gx, gy), radius=radius, magnitude=magnitude)
 
                 # 同时创建一个标记，初始放在点击处（浮点位置）
                 marker = {"x": float(gx), "y": float(gy)}
@@ -122,6 +151,8 @@ class UIManager:
         input_handler.register_key_callback(KeyMap.G, MouseMap.PRESS, on_g_press)
         input_handler.register_key_callback(KeyMap.C, MouseMap.PRESS, on_c_press)
         input_handler.register_key_callback(KeyMap.U, MouseMap.PRESS, on_u_press)
+        input_handler.register_key_callback(KeyMap.V, MouseMap.PRESS, on_v_press)
+        input_handler.register_key_callback(KeyMap.H, MouseMap.PRESS, on_h_press)
 
         input_handler.register_mouse_callback(MouseMap.LEFT, MouseMap.PRESS, on_mouse_left_press)
 

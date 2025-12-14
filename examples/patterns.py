@@ -38,14 +38,14 @@ def create_pattern(grid: np.ndarray, pattern_type: PatternType, **kwargs) -> Non
             grid,
             center=center,
             radius=kwargs.get("radius"),
-            magnitude=kwargs.get("magnitude", 1.0)
+            magnitude=kwargs.get("magnitude", 10.0)
         )
     elif pattern_type == PatternType.RADIAL:
         vector_calculator.create_radial_pattern(
             grid,
             center=center,
             radius=kwargs.get("radius"),
-            magnitude=kwargs.get("magnitude", 1.0)
+            magnitude=kwargs.get("magnitude", 10.0)
         )
     elif pattern_type == PatternType.CUSTOM:
         # 自定义模式 - 可以在这里添加更多自定义模式
@@ -92,8 +92,8 @@ def main():
     # 运行主循环
     print("[示例] 开始主循环...")
     print("[示例] 按空格键切换模式，按R键重置视图，按G键切换网格显示，按C键清空网格")
-    print("[示例] 按U键切换实时更新")
-    print("[示例] 使用鼠标左键拖动视图，使用鼠标滚轮缩放视图")
+    print("[示例] 按U键切换实时更新，按V键反转向量场方向")
+    print("[示例] 使用鼠标左键放置向量场，拖动视图，使用鼠标滚轮缩放视图")
 
     # 初始化 UI 管理器并注册回调（回调包含键盘、鼠标左键、清空等行为）
     ui_manager = UIManager(app_core, window, vector_calculator)
