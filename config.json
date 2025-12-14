@@ -1,38 +1,65 @@
 {
-    "grid_width": 640,
-    "grid_height": 480,
-    "cell_size": 1.0,
-    "vector_color": [
-        0.2,
-        0.6,
-        1.0
-    ],
-    "vector_scale": 1.0,
-    "vector_self_weight": 0.2,
-    "vector_neighbor_weight": 0.2,
-    "include_self": true,
-    "enable_vector_average": false,
-    "enable_vector_normalization": false,
-    "cam_x": 0.0,
-    "cam_y": 0.0,
-    "cam_zoom": 1.0,
-    "show_grid": true,
-    "grid_color": [
-        0.3,
-        0.3,
-        0.3
-    ],
-    "background_color": [
-        0.1,
-        0.1,
-        0.1
-    ],
+    "grid": {
+        "width": 640,
+        "height": 480,
+        "color": [
+            0.3,
+            0.3,
+            0.3
+        ]
+    },
+    "cell": {
+        "size": 1.0
+    },
+    "vector": {
+        "color": [
+            0.2,
+            0.6,
+            1.0
+        ],
+        "scale": 1.0,
+        "self": {
+            "weight": 0.2
+        },
+        "neighbor": {
+            "weight": 0.2
+        }
+    },
+    "include": {
+        "self": true
+    },
+    "enable": {
+        "vector": {
+            "average": false,
+            "normalization": false
+        }
+    },
+    "cam": {
+        "x": 0.0,
+        "y": 0.0,
+        "zoom": 1.0
+    },
+    "show": {
+        "grid": true
+    },
+    "background": {
+        "color": [
+            0.1,
+            0.1,
+            0.1
+        ]
+    },
     "antialiasing": true,
-    "line_width": 1.0,
-    "enable_event_output": true,
-    "max_event_recursion_depth": 10,
-    "compute_device": "cpu",
-    "compute_iterations": 1,
-    "ui_theme": "dark",
-    "ui_scale": 1.0
+    "line": {
+        "width": 1.0
+    },
+    "compute": {
+        "device": "cpu",
+        "iterations": 1
+    },
+    "render": {
+        "vector": {
+            "lines": true
+        }
+    }
 }

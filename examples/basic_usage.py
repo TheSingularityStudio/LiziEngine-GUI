@@ -13,6 +13,7 @@ from lizi_engine.core.container import container
 from lizi_engine.core.app import AppCore
 from lizi_engine.window.window import Window
 from lizi_engine.compute.vector_field import vector_calculator
+from plugins.ui import UIManager
 
 def main():
     """主函数"""
@@ -46,11 +47,52 @@ def main():
     # 设置示例向量场 - 创建旋转模式
     vector_calculator.create_tangential_pattern(grid, magnitude=1.0)
 
+    # 初始化视图
+    try:
+        app_core.view_manager.reset_view(grid.shape[1], grid.shape[0])
+    except Exception:
+        pass
+
     # 运行主循环
     print("[示例] 开始主循环...")
+    print("[示例] 按空格键重新生成切线模式，按G键切换网格显示，按C键清空网格")
+    print("[示例] 按U键切换实时更新；用鼠标拖动视图并滚轮缩放")
+
+    # 初始化 UI 管理器并注册回调（与 patterns.py 保持一致）
+    ui_manager = UIManager(app_core, window, vector_calculator)
+
+    def _on_space():
+        # 空格键：重新生成切线模式并重置视图
+        print("[示例] 重新生成切线模式")
+        vector_calculator.create_tangential_pattern(grid, magnitude=1.0)
+        try:
+            app_core.view_manager.reset_view(grid.shape[1], grid.shape[0])
+        except Exception:
+            pass
+
+    ui_manager.register_callbacks(grid, on_space=_on_space)
+
     while not window.should_close:
-        # 更新窗口
+        # 更新窗口和处理 UI 事件
         window.update()
+
+        # 实时更新向量场（如果启用）
+        if ui_manager.enable_update:
+            vector_calculator.update_grid_with_adjacent_sum(grid, include_self=True)
+
+        # 处理鼠标拖动与滚轮
+        try:
+            ui_manager.process_mouse_drag()
+        except Exception as e:
+            print(f"[错误] 鼠标拖动处理异常: {e}")
+
+        ui_manager.process_scroll()
+
+        # 更新标记位置（可选）
+        try:
+            ui_manager.update_markers(grid)
+        except Exception as e:
+            print(f"[错误] 更新标记异常: {e}")
 
         # 渲染
         window.render(grid)

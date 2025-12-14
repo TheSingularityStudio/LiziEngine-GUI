@@ -170,6 +170,11 @@ class VectorFieldRenderer(EventHandler):
         vector_color = self._config_manager.get("vector_color", [0.2, 0.6, 1.0])
         vector_scale = self._config_manager.get("vector_scale", 1.0)
         line_width = self._config_manager.get("line_width", 1.0)
+        render_lines = self._config_manager.get("render_vector_lines", True)
+
+        # 如果关闭渲染向量线条，直接返回
+        if not render_lines:
+            return
 
         # 设置线条宽度
         glLineWidth(line_width)

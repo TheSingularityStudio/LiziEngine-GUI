@@ -75,17 +75,16 @@ class ConfigManager:
         self.register_option("antialiasing", True, "是否启用抗锯齿", type="boolean")
         self.register_option("line_width", 1.0, "线条宽度", type="number", min_value=0.5, max_value=5.0)
 
-        # 事件系统配置
-        self.register_option("enable_event_output", True, "是否启用事件输出", type="boolean")
-        self.register_option("max_event_recursion_depth", 10, "最大事件递归深度", type="number", min_value=1, max_value=100)
+        # 事件系统配置（移除未使用的项，保持事件总线行为默认）
 
         # 计算配置
         self.register_option("compute_device", "cpu", "计算设备", options=["cpu", "gpu"])
         self.register_option("compute_iterations", 1, "计算迭代次数", type="number", min_value=1, max_value=100)
 
-        # UI配置
-        self.register_option("ui_theme", "dark", "UI主题", options=["dark", "light"])
-        self.register_option("ui_scale", 1.0, "UI缩放", type="number", min_value=0.5, max_value=2.0)
+        # UI 配置（简化：UI 主题/缩放由前端插件自行管理）
+
+        # 渲染配置：是否渲染向量线条（新增）
+        self.register_option("render_vector_lines", True, "是否渲染向量线条", type="boolean")
 
     def register_option(self, key: str, default: Any, description: str = "", 
                        type: str = "string", options: List[Any] = None,
@@ -188,6 +187,35 @@ class ConfigManager:
                 config[key] = self._state_manager.get(key, option.value)
             return config
 
+    def _nest_dict_from_flat(self, flat: Dict[str, Any]) -> Dict[str, Any]:
+        """将扁平键（使用下划线分隔）转换为嵌套字典
+
+        例如: {'vector_color': [..], 'grid_width': 640} -> {'vector': {'color': [...]}, 'grid': {'width': 640}}
+        """
+        nested: Dict[str, Any] = {}
+        for flat_key, value in flat.items():
+            parts = flat_key.split('_') if flat_key else [flat_key]
+            cur = nested
+            for i, part in enumerate(parts):
+                if i == len(parts) - 1:
+                    cur[part] = value
+                else:
+                    if part not in cur or not isinstance(cur[part], dict):
+                        cur[part] = {}
+                    cur = cur[part]
+        return nested
+
+    def _flatten_dict(self, nested: Dict[str, Any], parent_key: str = '') -> Dict[str, Any]:
+        """将嵌套字典转换为扁平键（使用下划线连接）"""
+        items: Dict[str, Any] = {}
+        for k, v in nested.items():
+            new_key = f"{parent_key}_{k}" if parent_key else k
+            if isinstance(v, dict):
+                items.update(self._flatten_dict(v, new_key))
+            else:
+                items[new_key] = v
+        return items
+
     def reset_to_default(self, key: Optional[str] = None) -> None:
         """重置配置为默认值"""
         with self._lock:
@@ -221,10 +249,20 @@ class ConfigManager:
             with open(file_path, 'r', encoding='utf-8') as f:
                 config_data = json.load(f)
 
+            # 支持嵌套或扁平的配置文件格式
+            flat_config: Dict[str, Any] = {}
+            if isinstance(config_data, dict):
+                # 将嵌套的 dict 扁平化为使用下划线的键名
+                flat_config = self._flatten_dict(config_data)
+
             with self._lock:
-                for key, value in config_data.items():
+                for key, value in flat_config.items():
                     if key in self._options:
                         self.set(key, value)
+                    else:
+                        # 兼容：也尝试直接使用原始键（如果文件已经是扁平的）
+                        if key in self._options:
+                            self.set(key, value)
 
             return True
         except Exception as e:
@@ -238,13 +276,15 @@ class ConfigManager:
             if not config_file:
                 return False
 
-            config_data = self.get_all()
+            # 获取扁平配置并转换为嵌套结构写入文件
+            flat_config = self.get_all()
+            nested = self._nest_dict_from_flat(flat_config)
 
             # 确保目录存在
             os.makedirs(os.path.dirname(config_file), exist_ok=True)
 
             with open(config_file, 'w', encoding='utf-8') as f:
-                json.dump(config_data, f, indent=4)
+                json.dump(nested, f, indent=4)
 
             return True
         except Exception as e:
