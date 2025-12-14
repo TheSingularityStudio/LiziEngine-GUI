@@ -33,6 +33,8 @@ class VectorFieldCalculator(EventHandler):
 
         # 订阅事件
         self._event_bus.subscribe(EventType.APP_INITIALIZED, self)
+        # 监听配置变更以便在运行时响应 compute_device 的修改
+        self._event_bus.subscribe(EventType.CONFIG_CHANGED, self)
 
     @property
     def current_device(self) -> str:
@@ -168,6 +170,18 @@ class VectorFieldCalculator(EventHandler):
         if event.type == EventType.APP_INITIALIZED:
             if "device" in event.data:
                 self.set_device(event.data["device"])
+        elif event.type == EventType.CONFIG_CHANGED:
+            # 响应配置变更事件，及时更新当前计算设备而不进入死循环
+            data = event.data or {}
+            key = data.get("key")
+            if key == "compute_device":
+                new_device = data.get("new_value")
+                if new_device and new_device != self._current_device:
+                    if new_device == "gpu" and self._gpu_calculator is None:
+                        print("[向量场计算] GPU计算器不可用 (来自配置变更)")
+                    else:
+                        self._current_device = new_device
+                        print(f"[向量场计算] 计算设备已切换为: {new_device} (来自配置变更)")
 
     def cleanup(self) -> None:
         """清理资源"""

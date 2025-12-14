@@ -275,9 +275,10 @@ class VectorFieldRenderer(EventHandler):
 
         # 获取配置
         grid_color = self._config_manager.get("grid_color", [0.3, 0.3, 0.3])
-        show_grid = self._state_manager.get("show_grid", True)
+        # 统一从配置管理器读取 show_grid，确保配置文件和运行时配置一致
+        show_grid = self._config_manager.get("show_grid" , True)
 
-        if not show_grid:
+        if not show_grid :
             return
 
         h, w = grid.shape[:2]

@@ -176,7 +176,6 @@ class ViewManager(EventHandler):
             "cam_y": 0.0,
             "cam_zoom": 1.0,
             "view_changed": False,
-            "show_grid": True
         })
 
         # 订阅事件

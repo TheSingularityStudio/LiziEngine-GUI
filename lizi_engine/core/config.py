@@ -4,6 +4,7 @@
 """
 import json
 import os
+import sys
 import threading
 from typing import Any, Dict, Optional, Union, List
 from dataclasses import dataclass, asdict, field
@@ -280,8 +281,10 @@ class ConfigManager:
             flat_config = self.get_all()
             nested = self._nest_dict_from_flat(flat_config)
 
-            # 确保目录存在
-            os.makedirs(os.path.dirname(config_file), exist_ok=True)
+            # 确保目录存在（仅当路径包含目录时创建）
+            dir_name = os.path.dirname(config_file)
+            if dir_name:
+                os.makedirs(dir_name, exist_ok=True)
 
             with open(config_file, 'w', encoding='utf-8') as f:
                 json.dump(nested, f, indent=4)
@@ -316,6 +319,22 @@ class ConfigManager:
         return key in self._options
 
 # 全局配置管理器实例
-# 获取项目根目录下的config.json文件路径
-config_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "config.json")
+# 配置路径查找策略（打包后可动态覆盖）：
+# 1. 环境变量 LIZI_CONFIG 或 LIZIENGINE_CONFIG
+# 2. 当前工作目录下的 config.json
+# 3. 可执行文件所在目录下的 config.json（对 PyInstaller/frozen 生效）
+env_path = os.environ.get("LIZI_CONFIG") or os.environ.get("LIZIENGINE_CONFIG")
+if env_path:
+    config_path = env_path
+else:
+    cwd_path = os.path.join(os.getcwd(), "config.json")
+    if os.path.exists(cwd_path):
+        config_path = cwd_path
+    else:
+        if getattr(sys, 'frozen', False):
+            base_dir = os.path.dirname(sys.executable)
+        else:
+            base_dir = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+        config_path = os.path.join(base_dir, "config.json")
+
 config_manager = ConfigManager(config_path)

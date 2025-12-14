@@ -59,7 +59,7 @@
     },
     "render": {
         "vector": {
-            "lines": true
+            "lines": false
         }
     }
 }
