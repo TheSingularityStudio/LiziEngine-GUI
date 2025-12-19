@@ -16,6 +16,7 @@ class GPUVectorFieldCalculator:
         self._ctx = None
         self._queue = None
         self._programs = {}
+        self._kernels = {}
         self._initialized = False
 
         # 初始化OpenCL
@@ -277,6 +278,12 @@ class GPUVectorFieldCalculator:
             self._programs['update_grid_with_adjacent_sum'] = cl.Program(self._ctx, update_grid_kernel).build()
             self._programs['create_radial_pattern'] = cl.Program(self._ctx, radial_pattern_kernel).build()
             self._programs['create_tangential_pattern'] = cl.Program(self._ctx, tangential_pattern_kernel).build()
+            
+            # 预先创建并存储内核实例，避免重复检索
+            self._kernels['sum_adjacent_vectors'] = cl.Kernel(self._programs['sum_adjacent_vectors'], 'sum_adjacent_vectors')
+            self._kernels['update_grid_with_adjacent_sum'] = cl.Kernel(self._programs['update_grid_with_adjacent_sum'], 'update_grid_with_adjacent_sum')
+            self._kernels['create_radial_pattern'] = cl.Kernel(self._programs['create_radial_pattern'], 'create_radial_pattern')
+            self._kernels['create_tangential_pattern'] = cl.Kernel(self._programs['create_tangential_pattern'], 'create_tangential_pattern')
         except Exception as e:
             print(f"[GPU计算] OpenCL程序编译失败: {e}")
             raise
@@ -308,13 +315,13 @@ class GPUVectorFieldCalculator:
         enable_average_int = 1 if enable_average else 0
 
         # 执行内核
-        self._programs['sum_adjacent_vectors'].sum_adjacent_vectors(
-            self._queue, (w, h), None,
+        self._kernels['sum_adjacent_vectors'].set_args(
             grid_buf, result_buf,
             np.int32(w), np.int32(h), np.int32(x), np.int32(y),
             np.float32(self_weight), np.float32(neighbor_weight),
             np.int32(include_self_int), np.int32(enable_average_int)
         )
+        cl.enqueue_nd_range_kernel(self._queue, self._kernels['sum_adjacent_vectors'], (w, h), None)
 
         # 读取结果
         cl.enqueue_copy(self._queue, result, result_buf)
@@ -351,13 +358,13 @@ class GPUVectorFieldCalculator:
         enable_normalization_int = 1 if enable_normalization else 0
 
         # 执行内核
-        self._programs['update_grid_with_adjacent_sum'].update_grid_with_adjacent_sum(
-            self._queue, (w, h), None,
+        self._kernels['update_grid_with_adjacent_sum'].set_args(
             grid_buf, np.int32(w), np.int32(h),
             np.float32(self_weight), np.float32(neighbor_weight),
             np.int32(include_self_int), np.int32(enable_average_int),
             np.int32(enable_normalization_int)
         )
+        cl.enqueue_nd_range_kernel(self._queue, self._kernels['update_grid_with_adjacent_sum'], (w, h), None)
 
         # 读取结果
         cl.enqueue_copy(self._queue, grid, grid_buf)
@@ -398,12 +405,12 @@ class GPUVectorFieldCalculator:
         grid_buf = cl.Buffer(self._ctx, cl.mem_flags.READ_WRITE | cl.mem_flags.COPY_HOST_PTR, hostbuf=grid)
 
         # 执行内核
-        self._programs['create_radial_pattern'].create_radial_pattern(
-            self._queue, (w, h), None,
+        self._kernels['create_radial_pattern'].set_args(
             grid_buf, np.int32(w), np.int32(h),
             np.float32(cx), np.float32(cy),
             np.float32(radius), np.float32(magnitude)
         )
+        cl.enqueue_nd_range_kernel(self._queue, self._kernels['create_radial_pattern'], (w, h), None)
 
         # 读取结果
         cl.enqueue_copy(self._queue, grid, grid_buf)
@@ -435,12 +442,12 @@ class GPUVectorFieldCalculator:
         grid_buf = cl.Buffer(self._ctx, cl.mem_flags.READ_WRITE | cl.mem_flags.COPY_HOST_PTR, hostbuf=grid)
 
         # 执行内核
-        self._programs['create_tangential_pattern'].create_tangential_pattern(
-            self._queue, (w, h), None,
+        self._kernels['create_tangential_pattern'].set_args(
             grid_buf, np.int32(w), np.int32(h),
             np.float32(cx), np.float32(cy),
             np.float32(radius), np.float32(magnitude)
         )
+        cl.enqueue_nd_range_kernel(self._queue, self._kernels['create_tangential_pattern'], (w, h), None)
 
         # 读取结果
         cl.enqueue_copy(self._queue, grid, grid_buf)
