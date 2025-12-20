@@ -14,6 +14,8 @@ from lizi_engine.core.app import AppCore
 from lizi_engine.window.window import Window
 from lizi_engine.compute.vector_field import vector_calculator
 from plugins.ui import UIManager
+from plugins.controller import Controller
+from plugins.marker_system import MarkerSystem
 
 def main():
     """主函数"""
@@ -42,7 +44,7 @@ def main():
         return
 
     # 获取网格
-    grid = app_core.grid_manager.init_grid(64, 48)
+    grid = app_core.grid_manager.init_grid(640, 480)
 
     # 设置示例向量场 - 创建旋转模式
     vector_calculator.create_tangential_pattern(grid, magnitude=1.0)
@@ -58,8 +60,14 @@ def main():
     print("[示例] 按空格键重新生成切线模式，按G键切换网格显示，按C键清空网格")
     print("[示例] 按U键切换实时更新；用鼠标拖动视图并滚轮缩放")
 
+    # 初始化标记系统
+    marker_system = MarkerSystem(app_core)
+
+    # 初始化控制器
+    controller = Controller(app_core, vector_calculator, marker_system, grid)
+
     # 初始化 UI 管理器并注册回调（与 patterns.py 保持一致）
-    ui_manager = UIManager(app_core, window, vector_calculator)
+    ui_manager = UIManager(app_core, window, controller, marker_system)
 
     def _on_space():
         # 空格键：重新生成切线模式并重置视图
@@ -106,4 +114,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
