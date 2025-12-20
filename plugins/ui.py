@@ -114,16 +114,10 @@ class UIManager:
                 radius = 2
                 magnitude = 1 if self.vector_field_direction else -1
 
-                direction = "朝外" if self.vector_field_direction else "朝内"
-                pattern = "径向" if self.vector_field_pattern else "切线"
-                print(f"[示例] 在网格位置放置{pattern}向量场: ({gx}, {gy}), radius={radius}, mag={magnitude}, 方向={direction}")
+                direction = "朝外" if self.vector_field_direction else "朝内"                
+                print(f"[示例] 在网格位置放置向量场: ({gx}, {gy}), radius={radius}, mag={magnitude}, 方向={direction}")
 
-                if self.vector_field_pattern:
-                    # 径向模式（发散）
-                    self.vector_calculator.create_radial_pattern(grid, center=(gx, gy), radius=radius, magnitude=magnitude)
-                else:
-                    # 切线模式（旋转）
-                    self.vector_calculator.create_tangential_pattern(grid, center=(gx, gy), radius=radius, magnitude=magnitude)
+                self.vector_calculator.create_radial_pattern(grid, center=(gx, gy), radius=radius, magnitude=magnitude)                
 
                 # 同时创建一个标记，初始放在点击处（浮点位置）
                 self.marker_system.add_marker(float(gx), float(gy), float(magnitude))
