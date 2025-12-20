@@ -116,8 +116,7 @@ def main():
         # 实时更新向量场
         if ui_manager.enable_update:
             # 使用计算模块的update_grid_with_adjacent_sum方法更新整个网格
-            # 添加include_self=True参数，确保每个向量都包含自身的值
-            vector_calculator.update_grid_with_adjacent_sum(grid, include_self=True)
+            vector_calculator.update_grid_with_adjacent_sum(grid)
 
         # 处理鼠标拖动
         try:
@@ -146,3 +145,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
