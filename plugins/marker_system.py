@@ -132,7 +132,9 @@ class MarkerSystem:
                 new_y = max(0.0, min(h - 1.0, y + dy))
 
                 # 创建径向模式
-                vector_calculator.create_radial_pattern(grid,center=(new_x,new_y), radius=2.0, magnitude=m["mag"])
+                #vector_calculator.create_radial_pattern(grid,center=(new_x,new_y), radius=2.0, magnitude=m["mag"])
+                # 创建微小向量影响
+                self.create_tiny_vector(grid, new_x, new_y, m["mag"])
 
                 m["x"] = new_x
                 m["y"] = new_y
@@ -149,18 +151,8 @@ class MarkerSystem:
         self.markers = new_markers
         self._sync_to_state_manager()
 
-
-    def add_vector_at_position(self, grid: np.ndarray, x: float, y: float, vx: float, vy: float, radius: float = 1.0) -> None:
-        """在指定坐标位置叠加指定的向量值
-
-        Args:
-            grid: 向量场网格
-            x: 目标位置的x坐标（浮点）
-            y: 目标位置的y坐标（浮点）
-            vx: 要叠加的x方向向量值
-            vy: 要叠加的y方向向量值
-            radius: 影响半径，控制向量影响的范围
-        """
+    def create_tiny_vector(self, grid: np.ndarray, x: float, y: float, mag: float = 1.0, vx: float = 0.0, vy: float = 0.0) -> None:
+        # 在指定位置创建一个微小的向量场影响,只影响位置本身及上下左右四个邻居
         if not hasattr(grid, "ndim"):
             return
 
@@ -174,30 +166,26 @@ class MarkerSystem:
         cx = int(round(x))
         cy = int(round(y))
 
-        # 计算影响范围
-        sx = max(0, int(cx - radius))
-        ex = min(w - 1, int(cx + radius))
-        sy = max(0, int(cy - radius))
-        ey = min(h - 1, int(cy + radius))
-
-        # 在指定范围内叠加向量值
-        for yy in range(sy, ey + 1):
-            for xx in range(sx, ex + 1):
-                try:
-                    if grid.ndim >= 3 and grid.shape[2] >= 2:
-                        # 计算距离中心的相对位置
-                        dx = xx - cx
-                        dy = yy - cy
-                        dist = (dx * dx + dy * dy) ** 0.5
-
-                        # 根据距离计算衰减因子（距离越远影响越小）
-                        factor = max(0.0, 1.0 - dist / radius)
-
-                        # 叠加向量值，使用衰减因子控制影响强度
-                        grid[yy, xx, 0] += vx * factor
-                        grid[yy, xx, 1] += vy * factor
-                except Exception:
-                    continue
+        # 只影响当前位置及其上下左右邻居
+        for dy in [-1, 0, 1]:
+            for dx in [-1, 0, 1]:
+                if abs(dx) + abs(dy) == 1:  # 上下左右邻居
+                    nx = cx + dx
+                    ny = cy + dy
+                    if 0 <= nx < w and 0 <= ny < h:
+                        try:
+                            if grid.ndim >= 3 and grid.shape[2] >= 2:
+                                grid[ny, nx, 0] += dx * mag
+                                grid[ny, nx, 1] += dy * mag
+                        except Exception:
+                            continue
+        #当前位置的向量值为vx,vy
+        if grid.ndim >= 3 and grid.shape[2] >= 2:
+            try:
+                grid[cy, cx, 0] += vx * mag
+                grid[cy, cx, 1] += vy * mag
+            except Exception:
+                pass
 
     def _sync_to_state_manager(self) -> None:
         """将标记列表同步到状态管理器"""
