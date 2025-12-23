@@ -15,15 +15,17 @@ class MarkerSystem:
         # 标记列表，存储浮点网格坐标 {'x':float,'y':float}
         self.markers = []
 
-    def add_marker(self, x: float, y: float, mag: float = 1.0) -> None:
+    def add_marker(self, x: float, y: float, mag: float = 1.0, vx: float = 0.0, vy: float = 0.0) -> None:
         """添加一个新标记
 
         Args:
             x: 标记的x坐标（浮点）
             y: 标记的y坐标（浮点）
             mag: 标记的初始幅值（可选）
+            vx: 标记的x方向速度（可选）
+            vy: 标记的y方向速度（可选）
         """
-        marker = {"x": float(x), "y": float(y), "mag": float(mag)}
+        marker = {"x": float(x), "y": float(y), "mag": float(mag), "vx": float(vx), "vy": float(vy)}
         self.markers.append(marker)
         self._sync_to_state_manager()
 
@@ -78,25 +80,25 @@ class MarkerSystem:
             try:
                 # 在浮点坐标处拟合向量值
                 fitted_vx, fitted_vy = self.fit_vector_at_position(grid, x, y)
-
+                '''
                 # 计算拟合向量的幅值
                 fitted_mag = np.sqrt(fitted_vx**2 + fitted_vy**2)
-                
+
                 # 如果拟合向量幅值低于阈值，自动移除该标记
                 if fitted_mag < clear_threshold:
                     continue
-                
-                
-                # 使用拟合向量作为位移量
-                dx = fitted_vx * move_factor
-                dy = fitted_vy * move_factor
+                '''
 
-                # 更新浮点位置
-                new_x = max(0.0, min(w - 1.0, x + dx))
-                new_y = max(0.0, min(h - 1.0, y + dy))
+                # 设置标记的速度属性
+                m["vx"] = fitted_vx * move_factor
+                m["vy"] = fitted_vy * move_factor
 
-                # 创建微小向量影响
-                self.create_tiny_vector(grid, new_x, new_y, m["mag"])
+                # 使用速度更新浮点位置
+                new_x = max(0.0, min(w - 1.0, x + m["vx"]))
+                new_y = max(0.0, min(h - 1.0, y + m["vy"]))
+
+                # 创建微小向量影响，使用标记的速度
+                self.create_tiny_vector(grid, new_x, new_y, m["mag"], m["vx"], m["vy"])
 
                 m["x"] = new_x
                 m["y"] = new_y
@@ -124,30 +126,13 @@ class MarkerSystem:
         x = max(0.0, min(w - 1.0, float(x)))
         y = max(0.0, min(h - 1.0, float(y)))
 
-        # 计算整数坐标
-        cx = int(round(x))
-        cy = int(round(y))
-
-        # 只影响当前位置及其上下左右邻居
+        # 只影响当前位置及其上下左右邻居，使用浮点坐标
         for dy in [-1, 0, 1]:
             for dx in [-1, 0, 1]:
                 if abs(dx) + abs(dy) == 1:  # 上下左右邻居
-                    nx = cx + dx
-                    ny = cy + dy
-                    if 0 <= nx < w and 0 <= ny < h:
-                        try:
-                            if grid.ndim >= 3 and grid.shape[2] >= 2:
-                                grid[ny, nx, 0] += dx * mag
-                                grid[ny, nx, 1] += dy * mag
-                        except Exception:
-                            continue
+                    self.add_vector_at_position(grid, x + dx, y + dy, dx * mag, dy * mag)
         #当前位置的向量值为vx,vy
-        if grid.ndim >= 3 and grid.shape[2] >= 2:
-            try:
-                grid[cy, cx, 0] += vx * mag
-                grid[cy, cx, 1] += vy * mag
-            except Exception:
-                pass
+        self.add_vector_at_position(grid, x, y, vx * mag, vy * mag)
 
     def add_vector_at_position(self, grid: np.ndarray, x: float, y: float, vx: float, vy: float) -> None:
         """在浮点坐标处添加向量，使用双线性插值的逆方法，将向量分布到四个最近的整数坐标
