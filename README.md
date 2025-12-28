@@ -11,6 +11,47 @@ LiziEngine 是一个由向量场驱动的物理引擎，它通过模拟现实中
 
 [A Physics Engine Without Collision Detection -Youtube](https://youtube.com/shorts/vhOnfVl3CO8?si=xlLsO2X8CiU1n6YD)
 
+
+## 安装和运行
+
+### 系统要求
+
+- Python 3.7+
+- OpenGL 支持
+- GPU 计算需要 OpenCL 运行时（可选）
+
+### 安装依赖
+
+```bash
+pip install -r requirements.txt
+# 或者使用 pip install lizi-engine 直接安装底层库
+```
+
+### 运行示例
+
+```bash
+# 基本使用示例 - 展示核心功能
+python examples/basic_usage.py
+
+# 重力箱示例 - 物理模拟
+python examples/gravity_box.py
+
+# 模式示例 - 各种向量场模式
+python examples/patterns.py
+
+# 输入演示 - 交互功能展示
+python examples/input_demo.py
+```
+
+### 键盘控制
+
+- **空格键**: 重新生成切线模式
+- **G键**: 切换网格显示
+- **C键**: 清空网格
+- **U键**: 切换实时更新
+- **鼠标拖拽**: 平移视图
+- **滚轮**: 缩放视图
+
 ## 向量场计算原理
 
 ### 基本概念
@@ -81,46 +122,6 @@ create_tiny_vector(self, grid, x, y, mag)
 
 - **CPU 计算**: 使用 NumPy 向量化操作，适合中小规模计算，易于调试
 - **GPU 计算**: 使用 OpenCL 加速，大规模并行计算，性能显著提升，适合实时应用
-
-## 安装和运行
-
-### 系统要求
-
-- Python 3.7+
-- OpenGL 支持
-- GPU 计算需要 OpenCL 运行时（可选）
-
-### 安装依赖
-
-```bash
-pip install -r requirements.txt
-# 或者使用 pip install lizi-engine 直接安装底层库
-```
-
-### 运行示例
-
-```bash
-# 基本使用示例 - 展示核心功能
-python examples/basic_usage.py
-
-# 重力箱示例 - 物理模拟
-python examples/gravity_box.py
-
-# 模式示例 - 各种向量场模式
-python examples/patterns.py
-
-# 输入演示 - 交互功能展示
-python examples/input_demo.py
-```
-
-### 键盘控制
-
-- **空格键**: 重新生成切线模式
-- **G键**: 切换网格显示
-- **C键**: 清空网格
-- **U键**: 切换实时更新
-- **鼠标拖拽**: 平移视图
-- **滚轮**: 缩放视图
 
 ## 架构设计
 
@@ -220,5 +221,10 @@ MIT License
 ## 联系方式
 
 2273902027@qq.com
+
+##贡献
+本项目处于demo阶段，可能存在一些未发现的问题。
+我们需要你的支持与协助！
+如果你感兴趣，请务必点一个star让我们被更多人看到！
 
 
