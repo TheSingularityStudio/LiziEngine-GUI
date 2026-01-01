@@ -196,7 +196,7 @@ class ControlPanel(QWidget):
         self.line_width_value_label = QLabel("1.00")
 
         width_layout.addWidget(width_label)
-        width_layout.addWidget(width_slider)
+        width_layout.addWidget(self.line_width_slider)
         width_layout.addWidget(self.line_width_value_label)
         layout.addLayout(width_layout)
 
