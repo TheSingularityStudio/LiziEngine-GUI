@@ -244,8 +244,12 @@ class OpenGLWidget(QOpenGLWidget):
             world_pos = self._screen_to_world(pos)
             if world_pos:
                 world_x, world_y = world_pos
+                # Convert world coordinates to grid coordinates
+                cell_size = self.config_manager.get("cell_size", 1.0) if self.config_manager else 1.0
+                gx = world_x / cell_size
+                gy = world_y / cell_size
                 if self.marker_system:
-                    self.marker_system.add_marker(world_x, world_y)
+                    self.marker_system.add_marker(gx, gy)
                 self.selected_marker = None  # No marker selected for dragging
         else:  # drag mode (default)
             # Select marker for dragging using controller
@@ -312,13 +316,9 @@ class OpenGLWidget(QOpenGLWidget):
         viewport_width = self.width()
         viewport_height = self.height()
 
-        # Convert screen to normalized device coordinates (-1 to 1)
-        ndc_x = (2.0 * screen_pos.x() / viewport_width) - 1.0
-        ndc_y = 1.0 - (2.0 * screen_pos.y() / viewport_height)
-
-        # Convert to world coordinates
-        world_x = cam_x + (ndc_x * viewport_width / (2.0 * cam_zoom))
-        world_y = cam_y + (ndc_y * viewport_height / (2.0 * cam_zoom))
+        # Convert screen coordinates to world coordinates (same as controller.py)
+        world_x = cam_x + (screen_pos.x() - (viewport_width / 2.0)) / cam_zoom
+        world_y = cam_y + (screen_pos.y() - (viewport_height / 2.0)) / cam_zoom
 
         return world_x, world_y
 

@@ -105,8 +105,22 @@ class UIManager:
                 mouse_mode = self.app_core.state_manager.get("mouse_mode", "drag")
 
                 if mouse_mode == "place":
-                    # Place a new marker at the click position
-                    self.marker_system.add_marker(mx, my)
+                    # Convert mouse coordinates to grid coordinates (same as controller.py)
+                    cam_x = self.app_core.state_manager.get("cam_x", 0.0)
+                    cam_y = self.app_core.state_manager.get("cam_y", 0.0)
+                    cam_zoom = self.app_core.state_manager.get("cam_zoom", 1.0)
+                    viewport_width = self.app_core.state_manager.get("viewport_width", 800)
+                    viewport_height = self.app_core.state_manager.get("viewport_height", 600)
+                    cell_size = self.app_core.config_manager.get("cell_size", 1.0)
+
+                    world_x = cam_x + (mx - (viewport_width / 2.0)) / cam_zoom
+                    world_y = cam_y + (my - (viewport_height / 2.0)) / cam_zoom
+
+                    gx = world_x / cell_size
+                    gy = world_y / cell_size
+
+                    # Place a new marker at the converted grid position
+                    self.marker_system.add_marker(gx, gy)
                     self._selected_marker = None  # No marker selected for dragging
                 else:  # drag mode (default)
                     # Select marker for dragging
