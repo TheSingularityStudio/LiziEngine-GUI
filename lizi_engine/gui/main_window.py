@@ -42,7 +42,7 @@ class MainWindow(QMainWindow):
         self.realtime_updates_enabled = True
 
         # Window properties
-        self.setWindowTitle("LiziEngine - PyQt6 GUI")
+        self.setWindowTitle("粒子引擎 - PyQt6 GUI")
         self.setGeometry(100, 100, 1200, 800)
 
         # Initialize UI
@@ -91,22 +91,22 @@ class MainWindow(QMainWindow):
         menubar = self.menuBar()
 
         # File menu
-        file_menu = menubar.addMenu('File')
+        file_menu = menubar.addMenu('文件')
 
-        exit_action = QAction('Exit', self)
+        exit_action = QAction('退出', self)
         exit_action.setShortcut(QKeySequence.StandardKey.Quit)
         exit_action.triggered.connect(self.close)
         file_menu.addAction(exit_action)
 
         # View menu
-        view_menu = menubar.addMenu('View')
+        view_menu = menubar.addMenu('视图')
 
-        reset_view_action = QAction('Reset View', self)
+        reset_view_action = QAction('重置视图', self)
         reset_view_action.setShortcut('R')
         reset_view_action.triggered.connect(self._reset_view)
         view_menu.addAction(reset_view_action)
 
-        toggle_grid_action = QAction('Toggle Grid', self)
+        toggle_grid_action = QAction('切换网格', self)
         toggle_grid_action.setShortcut('G')
         toggle_grid_action.triggered.connect(self._toggle_grid)
         view_menu.addAction(toggle_grid_action)
@@ -212,21 +212,21 @@ class MainWindow(QMainWindow):
             else:
                 fps = getattr(self, '_last_fps', 60)
         self._last_fps = fps
-        self.fps_label.setText(f"FPS: {fps}")
+        self.fps_label.setText(f"帧率: {fps}")
 
         # Grid size
         grid_size = self.config_manager.get("grid_size", 64) if self.config_manager else 64
-        self.grid_size_label.setText(f"Grid: {grid_size}x{grid_size}")
+        self.grid_size_label.setText(f"网格: {grid_size}x{grid_size}")
 
         # Marker count
         marker_count = len(self.marker_system.get_markers()) if self.marker_system else 0
-        self.marker_count_label.setText(f"Markers: {marker_count}")
+        self.marker_count_label.setText(f"标记: {marker_count}")
 
         # Camera info
         cam_x = self.state_manager.get("cam_x", 0.0)
         cam_y = self.state_manager.get("cam_y", 0.0)
         cam_zoom = self.state_manager.get("cam_zoom", 1.0)
-        self.camera_label.setText(f"Camera: ({cam_x:.2f}, {cam_y:.2f}) Zoom: {cam_zoom:.2f}")
+        self.camera_label.setText(f"相机: ({cam_x:.2f}, {cam_y:.2f}) 缩放: {cam_zoom:.2f}")
 
     def _reset_view(self):
         """Reset view to default"""

@@ -93,7 +93,7 @@ class ControlPanel(QWidget):
         layout.setContentsMargins(10, 10, 10, 10)
 
         # Title
-        title_label = QLabel("LiziEngine Control Panel")
+        title_label = QLabel("粒子引擎控制面板")
         title_label.setFont(QFont("Arial", 12, QFont.Weight.Bold))
         title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         title_label.setStyleSheet("color: #4a9eff; margin-bottom: 10px;")
@@ -124,31 +124,31 @@ class ControlPanel(QWidget):
 
     def _create_view_controls(self):
         """Create view control group"""
-        group = QGroupBox("View Controls")
+        group = QGroupBox("视图控制")
         layout = QVBoxLayout(group)
 
         # Reset View button
-        reset_btn = QPushButton("Reset View (R)")
+        reset_btn = QPushButton("重置视图 (R)")
         reset_btn.clicked.connect(self.view_reset_requested.emit)
         layout.addWidget(reset_btn)
 
         # Center View button
-        center_btn = QPushButton("Center View")
+        center_btn = QPushButton("居中视图")
         center_btn.clicked.connect(self._center_view)
         layout.addWidget(center_btn)
 
         # Toggle Grid button
-        grid_btn = QPushButton("Toggle Grid (G)")
+        grid_btn = QPushButton("切换网格 (G)")
         grid_btn.clicked.connect(self.grid_toggle_requested.emit)
         layout.addWidget(grid_btn)
 
         # Clear Grid button
-        clear_btn = QPushButton("Clear Grid (C)")
+        clear_btn = QPushButton("清空网格 (C)")
         clear_btn.clicked.connect(self.grid_clear_requested.emit)
         layout.addWidget(clear_btn)
 
         # Generate Tangential button
-        tangential_btn = QPushButton("Generate Tangential (Space)")
+        tangential_btn = QPushButton("生成切向模式 (空格)")
         tangential_btn.clicked.connect(self.tangential_generate_requested.emit)
         layout.addWidget(tangential_btn)
 
@@ -156,7 +156,7 @@ class ControlPanel(QWidget):
 
     def _create_vector_field_controls(self):
         """Create vector field control group"""
-        group = QGroupBox("Vector Field")
+        group = QGroupBox("矢量场")
         layout = QVBoxLayout(group)
 
         # Zoom control
@@ -205,16 +205,16 @@ class ControlPanel(QWidget):
 
     def _create_marker_controls(self):
         """Create marker control group"""
-        group = QGroupBox("Markers")
+        group = QGroupBox("标记")
         layout = QVBoxLayout(group)
 
         # Add Marker button
-        add_marker_btn = QPushButton("Add Random Marker")
+        add_marker_btn = QPushButton("添加随机标记")
         add_marker_btn.clicked.connect(self.marker_add_requested.emit)
         layout.addWidget(add_marker_btn)
 
         # Clear Markers button
-        clear_markers_btn = QPushButton("Clear All Markers")
+        clear_markers_btn = QPushButton("清空所有标记")
         clear_markers_btn.clicked.connect(self.marker_clear_requested.emit)
         layout.addWidget(clear_markers_btn)
 
@@ -222,7 +222,7 @@ class ControlPanel(QWidget):
 
     def _create_settings_controls(self):
         """Create settings control group"""
-        group = QGroupBox("Settings")
+        group = QGroupBox("设置")
         layout = QVBoxLayout(group)
 
         # Real-time updates checkbox
@@ -249,19 +249,19 @@ class ControlPanel(QWidget):
         layout = QVBoxLayout(group)
 
         # FPS display
-        self.fps_label = QLabel("FPS: --")
+        self.fps_label = QLabel("帧率: --")
         layout.addWidget(self.fps_label)
 
         # Grid size display
-        self.grid_size_label = QLabel("Grid Size: --")
+        self.grid_size_label = QLabel("网格尺寸: --")
         layout.addWidget(self.grid_size_label)
 
         # Marker count display
-        self.marker_count_label = QLabel("Markers: --")
+        self.marker_count_label = QLabel("标记: --")
         layout.addWidget(self.marker_count_label)
 
         # Camera position display
-        self.camera_pos_label = QLabel("Camera: (--, --)")
+        self.camera_pos_label = QLabel("相机: (--, --)")
         layout.addWidget(self.camera_pos_label)
 
         return group
@@ -304,13 +304,13 @@ class ControlPanel(QWidget):
                           camera_pos=None):
         """Update status information displays"""
         if fps is not None:
-            self.fps_label.setText(f"FPS: {fps}")
+            self.fps_label.setText(f"帧率: {fps}")
 
         if grid_size is not None:
-            self.grid_size_label.setText(f"Grid Size: {grid_size}x{grid_size}")
+            self.grid_size_label.setText(f"网格尺寸: {grid_size}x{grid_size}")
 
         if marker_count is not None:
-            self.marker_count_label.setText(f"Markers: {marker_count}")
+            self.marker_count_label.setText(f"标记: {marker_count}")
 
         if camera_pos is not None:
             cam_x, cam_y = camera_pos
