@@ -154,10 +154,12 @@ class MainWindow(QMainWindow):
             self.control_panel.vector_scale_changed.connect(self._handle_vector_scale_change)
             self.control_panel.line_width_changed.connect(self._handle_line_width_change)
             self.control_panel.realtime_update_toggled.connect(self._handle_realtime_toggle)
+            self.control_panel.show_vectors_toggled.connect(self._handle_show_vectors_toggle)
 
         # Connect OpenGL widget signals
         if self.opengl_widget:
             self.opengl_widget.marker_selected.connect(self._handle_marker_selection)
+            self.opengl_widget.zoom_changed.connect(self.control_panel.update_zoom_slider)
 
         # Connect event manager signals
         self.event_manager.grid_updated.connect(self._handle_grid_update)
@@ -291,6 +293,11 @@ class MainWindow(QMainWindow):
     def _handle_realtime_toggle(self, enabled: bool):
         """Handle real-time updates toggle"""
         self.realtime_updates_enabled = enabled
+
+    def _handle_show_vectors_toggle(self, enabled: bool):
+        """Handle show vectors toggle"""
+        if self.config_manager:
+            self.config_manager.set("show_vectors", enabled)
 
     def _handle_marker_selection(self, marker_id: int):
         """Handle marker selection"""

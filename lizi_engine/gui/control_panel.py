@@ -20,6 +20,7 @@ class ControlPanel(QWidget):
     vector_scale_changed = pyqtSignal(float)
     line_width_changed = pyqtSignal(float)
     realtime_update_toggled = pyqtSignal(bool)
+    show_vectors_toggled = pyqtSignal(bool)
 
     def __init__(self, config_manager=None, state_manager=None):
         super().__init__()
@@ -206,6 +207,7 @@ class ControlPanel(QWidget):
         # Show vectors checkbox
         self.show_vectors_checkbox = QCheckBox("Show Vectors")
         self.show_vectors_checkbox.setChecked(True)
+        self.show_vectors_checkbox.stateChanged.connect(self._on_show_vectors_toggled)
         layout.addWidget(self.show_vectors_checkbox)
 
         return group
@@ -254,6 +256,11 @@ class ControlPanel(QWidget):
         """Handle real-time updates checkbox toggle"""
         enabled = state == Qt.CheckState.Checked.value
         self.realtime_update_toggled.emit(enabled)
+
+    def _on_show_vectors_toggled(self, state):
+        """Handle show vectors checkbox toggle"""
+        enabled = state == Qt.CheckState.Checked.value
+        self.show_vectors_toggled.emit(enabled)
 
     def update_status_info(self, fps=None, grid_size=None, marker_count=None,
                           camera_pos=None):
