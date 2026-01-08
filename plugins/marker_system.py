@@ -91,10 +91,18 @@ class MarkerSystem:
                 '''
 
                 # 设置标记的速度属性
-                m["vx"] = fitted_vx * move_factor
-                m["vy"] = fitted_vy * move_factor
+                m["vx"] += fitted_vx * move_factor
+                m["vy"] += fitted_vy * move_factor
 
-                # 使用速度更新浮点位置
+                # 边缘反弹逻辑
+                tentative_x = x + m["vx"]
+                if tentative_x < 0 or tentative_x > w - 1:
+                    m["vx"] = -m["vx"]
+                tentative_y = y + m["vy"]
+                if tentative_y < 0 or tentative_y > h - 1:
+                    m["vy"] = -m["vy"]
+
+                # 使用速度更新浮点位置（带反弹后的速度）
                 new_x = max(0.0, min(w - 1.0, x + m["vx"]))
                 new_y = max(0.0, min(h - 1.0, y + m["vy"]))
 
