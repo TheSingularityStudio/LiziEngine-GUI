@@ -85,7 +85,7 @@ def main():
         window.update()
 
         # 清空网格       
-        grid.fill(0.0)
+        #grid.fill(0.0)
 
         # 处理鼠标拖动与滚轮
         try:
