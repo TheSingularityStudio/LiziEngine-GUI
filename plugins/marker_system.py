@@ -90,10 +90,10 @@ class MarkerSystem:
                 vy += fitted_vy * mag
 
                 # 边缘反弹逻辑
-                tentative_x = x + vx
+                tentative_x = x + vx * move_factor
                 if tentative_x < 0 or tentative_x > w - 1:
                     vx = -vx
-                tentative_y = y + vy
+                tentative_y = y + vy * move_factor
                 if tentative_y < 0 or tentative_y > h - 1:
                     vy = -vy
 
@@ -102,7 +102,7 @@ class MarkerSystem:
                 new_y = max(0.0, min(h - 1.0, y + vy * move_factor))
 
                 # 创建微小向量影响
-                #self.create_tiny_vector(grid, new_x, new_y, mag)
+                self.create_tiny_vector(grid, new_x, new_y, mag)
 
                 m["x"] = new_x
                 m["y"] = new_y

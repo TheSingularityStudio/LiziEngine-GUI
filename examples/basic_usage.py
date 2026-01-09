@@ -106,6 +106,7 @@ def main():
                 marker['vx'] *= 0.99
                 marker['vy'] *= 0.99
             ui_manager.update_markers(grid)
+            vector_calculator.update_grid_with_adjacent_sum(grid)
         except Exception as e:
             print(f"[错误] 更新标记异常: {e}")
 
