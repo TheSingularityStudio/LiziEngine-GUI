@@ -102,7 +102,7 @@ class MarkerSystem:
                 new_y = max(0.0, min(h - 1.0, y + vy * move_factor))
 
                 # 创建微小向量影响
-                self.create_tiny_vector(grid, new_x, new_y, mag)
+                #self.create_tiny_vector(grid, new_x, new_y, mag)
 
                 m["x"] = new_x
                 m["y"] = new_y
