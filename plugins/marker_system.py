@@ -92,10 +92,10 @@ class MarkerSystem:
                 # 边缘反弹逻辑
                 tentative_x = x + vx * move_factor
                 if tentative_x < 0 or tentative_x > w - 1:
-                    vx = -vx
+                    vx = -vx * 0.5  # 反弹并损失部分速度
                 tentative_y = y + vy * move_factor
                 if tentative_y < 0 or tentative_y > h - 1:
-                    vy = -vy
+                    vy = -vy * 0.5  # 反弹并损失部分速度
 
                 # 使用速度更新浮点位置（带反弹后的速度）
                 new_x = max(0.0, min(w - 1.0, x + vx * move_factor))

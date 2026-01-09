@@ -108,8 +108,8 @@ def main():
             for marker in markers:
                 marker_system.add_vector_at_position(grid, x=marker["x"], y=marker["y"], vy= 0.1, vx=0.0)
                 # 摩擦力
-                marker['vx'] *= 0.99
-                marker['vy'] *= 0.99
+                marker['vx'] *= 0.9
+                marker['vy'] *= 0.9
             ui_manager.update_markers(grid)
             vector_calculator.update_grid_with_adjacent_sum(grid)            
         except Exception as e:
