@@ -80,7 +80,7 @@ class MarkerSystem:
             mag = m["mag"]
             vx = m["vx"]
             vy = m["vy"]
-            self.create_tiny_vector(grid, x, y, mag)
+            #self.create_tiny_vector(grid, x, y, mag)
             try:
                 # 在浮点坐标处拟合向量值
                 fitted_vx, fitted_vy = self.fit_vector_at_position(grid, x, y)
