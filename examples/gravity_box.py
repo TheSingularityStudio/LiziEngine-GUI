@@ -86,17 +86,12 @@ def main():
     # 注册回调
     ui_manager.register_callbacks(grid, on_space=on_space_press, on_u=on_u_press)
 
-    # FPS 限制变量
-    target_fps = app_core.config_manager.get("target_fps", 60)
-    frame_time = 1.0 / target_fps
-    last_time = time.time()
-
     while not window.should_close:
         # 更新窗口和处理 UI 事件
         window.update()
 
         #清空网格
-        grid.fill(0.0)      
+        grid.fill(0.0)
 
         # 处理鼠标拖动与滚轮
         try:
@@ -109,20 +104,20 @@ def main():
         # 实时更新向量场（如果启用）
         if ui_manager.enable_update:
             #vector_calculator.update_grid_with_adjacent_sum(grid)
-            add_inward_edge_vectors(grid, magnitude=0.5)
+            add_inward_edge_vectors(grid, magnitude=0.2)
 
         # 更新标记位置（可选）
         try:
             #给每个标记添加重力向量
             markers = marker_system.get_markers()
             for marker in markers:
-                marker['vy'] += 0.01
+                vector_calculator.add_vector_at_position(grid, marker['x'], marker['y'], 0.0, 0.02)
                 # 摩擦力
-                marker['vx'] *= 0.95
-                marker['vy'] *= 0.95
+                marker['vx'] *= 0.9
+                marker['vy'] *= 0.9
             ui_manager.update_markers(grid)
-            vector_calculator.update_grid_with_adjacent_sum(grid)     
-            ui_manager.update_markers(grid)       
+            vector_calculator.update_grid_with_adjacent_sum(grid)
+            ui_manager.update_markers(grid)
         except Exception as e:
             print(f"[错误] 更新标记异常: {e}")
 
@@ -130,11 +125,7 @@ def main():
         window.render(grid)
 
         # FPS 限制
-        current_time = time.time()
-        elapsed = current_time - last_time
-        if elapsed < frame_time:
-            time.sleep(frame_time - elapsed)
-        last_time = time.time()
+        app_core.fps_limiter.limit_fps()
 
     # 清理资源
     print("[示例] 清理资源...")
