@@ -214,8 +214,8 @@ class GPUVectorFieldCalculator:
             float dy = (float)idy - center_y;
             float dist = sqrt(dx * dx + dy * dy);
 
-            // 只处理在半径内且不在中心的点
-            if (dist >= radius || dist <= 0.0f) {
+            // 只处理在半径内的点
+            if (dist > radius) {
                 return;
             }
 
