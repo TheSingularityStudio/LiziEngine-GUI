@@ -79,16 +79,13 @@ class OpenGLWidget(QOpenGLWidget):
             # 渲染背景
             self._renderer.render_background()
 
-            # 渲染网格
-            if grid is not None:
-                self._renderer.render_grid(grid, cell_size, cam_x, cam_y, cam_zoom, self.width(), self.height())
-
-            # 渲染向量场
-            if grid is not None:
-                self._renderer.render_vector_field(grid, cell_size, cam_x, cam_y, cam_zoom, self.width(), self.height())
-
             # 渲染标记
             self._renderer.render_markers(cell_size, cam_x, cam_y, cam_zoom, self.width(), self.height())
+
+            # 渲染网格和向量场
+            if grid is not None:
+                self._renderer.render_grid(grid, cell_size, cam_x, cam_y, cam_zoom, self.width(), self.height())
+                self._renderer.render_vector_field(grid, cell_size, cam_x, cam_y, cam_zoom, self.width(), self.height())
 
         except Exception as e:
             print(f"[OpenGL Widget] 渲染错误: {e}")

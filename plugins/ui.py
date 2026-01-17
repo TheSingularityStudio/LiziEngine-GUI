@@ -109,7 +109,9 @@ class UIManager:
                 except Exception as e:
                     print(f"[错误] on_f 回调异常: {e}")
             try:
-                mx, my = input_handler.get_mouse_position()
+                from lizi_engine.core.state import state_manager
+                mx = state_manager.get("mouse_x", 0.0)
+                my = state_manager.get("mouse_y", 0.0)
                 self.controller.place_vector_field(mx, my)
             except Exception as e:
                 print(f"[错误] 处理f键按下时发生异常: {e}")

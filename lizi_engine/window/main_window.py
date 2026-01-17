@@ -6,7 +6,7 @@ import sys
 from typing import Optional
 from PyQt6.QtWidgets import QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QMenuBar, QStatusBar, QLabel
 from PyQt6.QtCore import Qt, QTimer, QPointF
-from PyQt6.QtGui import QAction, QKeySequence, QMouseEvent, QWheelEvent, QKeyEvent
+from PyQt6.QtGui import QAction, QKeySequence, QMouseEvent, QWheelEvent, QKeyEvent, QCursor
 
 from ..core.events import Event, EventType, event_bus
 from ..core.state import state_manager
@@ -186,6 +186,21 @@ class MainWindow(QMainWindow):
         """处理键盘按键事件"""
         key = event.key()
 
+        # 更新鼠标位置（实时获取当前鼠标位置）
+        cursor_pos = QCursor.pos()
+        window_pos = self.mapFromGlobal(cursor_pos)
+        if self._opengl_widget:
+            widget_pos = self._opengl_widget.pos()
+            relative_x = window_pos.x() - widget_pos.x()
+            relative_y = window_pos.y() - widget_pos.y()
+        else:
+            relative_x = window_pos.x()
+            relative_y = window_pos.y()
+
+        # 更新状态管理器中的鼠标位置
+        state_manager.set("mouse_x", relative_x)
+        state_manager.set("mouse_y", relative_y)
+
         # 发布键盘按下事件
         event_bus.publish(Event(
             EventType.KEY_PRESSED,
@@ -196,6 +211,9 @@ class MainWindow(QMainWindow):
             },
             "MainWindow"
         ))
+
+        # 触发input_handler键盘按下事件
+        input_handler.handle_key_event(key, 1, event.modifiers())
 
         # 处理特定按键
         if key == Qt.Key.Key_Space:
@@ -215,6 +233,16 @@ class MainWindow(QMainWindow):
 
         # 调用父类方法处理菜单快捷键等
         super().keyPressEvent(event)
+
+    def keyReleaseEvent(self, event: QKeyEvent) -> None:
+        """处理键盘释放事件"""
+        key = event.key()
+
+        # 触发input_handler键盘释放事件
+        input_handler.handle_key_event(key, 0, event.modifiers())
+
+        # 调用父类方法
+        super().keyReleaseEvent(event)
 
     def mousePressEvent(self, event: QMouseEvent) -> None:
         """处理鼠标按下事件"""
