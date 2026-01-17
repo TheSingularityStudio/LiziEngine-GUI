@@ -13,7 +13,7 @@ from .config import ConfigManager, config_manager
 from .container import container
 from ..compute.vector_field import VectorFieldCalculator
 from ..graphics.renderer import VectorFieldRenderer
-from ..gui.main_window import MainWindow
+from ..window.main_window import MainWindow
 
 # 检查GUI可用性
 try:

@@ -11,7 +11,7 @@ from PyQt6.QtGui import QSurfaceFormat
 from OpenGL.GL import *
 from ..core.events import Event, EventType, event_bus
 from ..core.state import state_manager
-from ..graphics.renderer import VectorFieldRenderer
+from .renderer import VectorFieldRenderer
 
 
 class OpenGLWidget(QOpenGLWidget):

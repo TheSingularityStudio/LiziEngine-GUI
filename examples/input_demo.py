@@ -10,7 +10,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')
 
 from PyQt6.QtWidgets import QApplication
 from lizi_engine.core.app import AppCore
-from lizi_engine.gui.main_window import MainWindow
+from lizi_engine.window.main_window import MainWindow
 from lizi_engine.input import input_handler, KeyMap, MouseMap
 
 

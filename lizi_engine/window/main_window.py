@@ -11,7 +11,7 @@ from PyQt6.QtGui import QAction, QKeySequence, QMouseEvent, QWheelEvent, QKeyEve
 from ..core.events import Event, EventType, event_bus
 from ..core.state import state_manager
 from ..input import input_handler
-from .opengl_widget import OpenGLWidget
+from ..graphics.opengl_widget import OpenGLWidget
 
 
 class MainWindow(QMainWindow):
