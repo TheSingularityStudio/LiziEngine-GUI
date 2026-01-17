@@ -169,9 +169,9 @@ class Controller:
         """处理滚轮缩放"""
         try:
             cam_zoom = self.app_core.state_manager.get("cam_zoom", 1.0)
-            zoom_speed = self.app_core.config_manager.get("zoom_speed", 0.5)
-            zoom_min = self.app_core.config_manager.get("zoom_min", 0.1)
-            zoom_max = self.app_core.config_manager.get("zoom_max", 10.0)
+            zoom_speed = 0.5
+            zoom_min = 0.1
+            zoom_max = 10.0
             cam_zoom += scroll_y * zoom_speed
             cam_zoom = max(zoom_min, min(zoom_max, cam_zoom))
 
