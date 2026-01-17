@@ -7,7 +7,6 @@ import ctypes
 from typing import Optional, Dict, Any, List, Tuple
 from OpenGL.GL import *
 from OpenGL.GL import shaders
-from ..core.config import config_manager
 from ..core.events import Event, EventType, event_bus, EventHandler
 from ..core.state import state_manager
 
@@ -93,7 +92,6 @@ class VectorFieldRenderer(EventHandler):
     def __init__(self):
         self._event_bus = event_bus
         self._state_manager = state_manager
-        self._config_manager = config_manager
 
         # 着色器源代码
         self._vertex_shader_src = """
@@ -167,10 +165,10 @@ class VectorFieldRenderer(EventHandler):
             return
 
         # 获取配置
-        vector_color = self._config_manager.get("vector_color", [0.2, 0.6, 1.0])
-        vector_scale = self._config_manager.get("vector_scale", 1.0)
-        line_width = self._config_manager.get("line_width", 1.0)
-        render_lines = self._config_manager.get("render_vector_lines", True)
+        vector_color = self._state_manager.get("vector_color", [0.2, 0.6, 1.0])
+        vector_scale = self._state_manager.get("vector_scale", 1.0)
+        line_width = self._state_manager.get("line_width", 1.0)
+        render_lines = self._state_manager.get("render_vector_lines", True)
 
         # 如果关闭渲染向量线条，直接返回
         if not render_lines:
@@ -274,9 +272,9 @@ class VectorFieldRenderer(EventHandler):
             return
 
         # 获取配置
-        grid_color = self._config_manager.get("grid_color", [0.3, 0.3, 0.3])
+        grid_color = self._state_manager.get("grid_color", [0.3, 0.3, 0.3])
         # 统一从配置管理器读取 show_grid，确保配置文件和运行时配置一致
-        show_grid = self._config_manager.get("show_grid" , True)
+        show_grid = self._state_manager.get("show_grid" , True)
 
         if not show_grid :
             return
@@ -335,7 +333,7 @@ class VectorFieldRenderer(EventHandler):
     def render_background(self) -> None:
         """渲染背景"""
         # 获取配置
-        bg_color = self._config_manager.get("background_color", [0.1, 0.1, 0.1])
+        bg_color = self._state_manager.get("background_color", [0.1, 0.1, 0.1])
 
         # 设置清屏颜色
         glClearColor(bg_color[0], bg_color[1], bg_color[2], 1.0)
@@ -355,8 +353,8 @@ class VectorFieldRenderer(EventHandler):
             return
 
         # 统一颜色和点大小
-        marker_color = self._config_manager.get("marker_color", [1.0, 0.2, 0.2])
-        point_size = int(self._config_manager.get("marker_size", 8))
+        marker_color = self._state_manager.get("marker_color", [1.0, 0.2, 0.2])
+        point_size = int(self._state_manager.get("marker_size", 8))
 
         # 构建顶点数组，每个点 (x, y, r, g, b)
         verts = np.zeros(len(markers) * 5, dtype=np.float32)
