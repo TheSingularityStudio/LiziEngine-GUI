@@ -5,20 +5,22 @@
 import sys
 from typing import Optional
 from PyQt6.QtWidgets import QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QMenuBar, QStatusBar, QLabel
-from PyQt6.QtCore import Qt, QTimer
-from PyQt6.QtGui import QAction, QKeySequence
+from PyQt6.QtCore import Qt, QTimer, QPointF
+from PyQt6.QtGui import QAction, QKeySequence, QMouseEvent, QWheelEvent, QKeyEvent
 
 from ..core.events import Event, EventType, event_bus
 from ..core.state import state_manager
+from ..input import input_handler
 from .opengl_widget import OpenGLWidget
 
 
 class MainWindow(QMainWindow):
     """主窗口类"""
 
-    def __init__(self, title: str = "LiziEngine", width: int = 800, height: int = 600):
+    def __init__(self, app_core, title: str = "LiziEngine", width: int = 800, height: int = 600):
         super().__init__()
 
+        self._app_core = app_core
         self._title = title
         self._width = width
         self._height = height
@@ -48,7 +50,7 @@ class MainWindow(QMainWindow):
         layout = QVBoxLayout(central_widget)
 
         # 创建OpenGL渲染器
-        self._opengl_widget = OpenGLWidget()
+        self._opengl_widget = OpenGLWidget(self._app_core)
         layout.addWidget(self._opengl_widget)
 
         # 创建菜单栏
@@ -179,6 +181,134 @@ class MainWindow(QMainWindow):
         ))
 
         event.accept()
+
+    def keyPressEvent(self, event: QKeyEvent) -> None:
+        """处理键盘按键事件"""
+        key = event.key()
+
+        # 发布键盘按下事件
+        event_bus.publish(Event(
+            EventType.KEY_PRESSED,
+            {
+                "key": key,
+                "text": event.text(),
+                "modifiers": event.modifiers().value
+            },
+            "MainWindow"
+        ))
+
+        # 处理特定按键
+        if key == Qt.Key.Key_Space:
+            # 空格键 - 重新生成模式
+            event_bus.publish(Event(
+                EventType.SPACE_PRESSED,
+                {},
+                "MainWindow"
+            ))
+        elif key == Qt.Key.Key_U:
+            # U键 - 切换实时更新
+            event_bus.publish(Event(
+                EventType.TOGGLE_UPDATE,
+                {},
+                "MainWindow"
+            ))
+
+        # 调用父类方法处理菜单快捷键等
+        super().keyPressEvent(event)
+
+    def mousePressEvent(self, event: QMouseEvent) -> None:
+        """处理鼠标按下事件"""
+        button = event.button()
+        pos = event.position()
+
+        # 获取鼠标位置相对于OpenGL widget的坐标
+        if self._opengl_widget:
+            widget_pos = self._opengl_widget.pos()
+            relative_x = pos.x() - widget_pos.x()
+            relative_y = pos.y() - widget_pos.y()
+        else:
+            relative_x = pos.x()
+            relative_y = pos.y()
+
+        # 更新状态管理器中的鼠标位置
+        state_manager.set("mouse_x", relative_x)
+        state_manager.set("mouse_y", relative_y)
+
+        # 触发input_handler鼠标按下事件 (映射PyQt6按钮到GLFW按钮)
+        button_map = {Qt.MouseButton.LeftButton: 0, Qt.MouseButton.RightButton: 1, Qt.MouseButton.MiddleButton: 2}
+        if button in button_map:
+            input_handler.handle_mouse_button_event(None, button_map[button], 1, 0)  # PRESS action
+
+        # 发布鼠标按下事件
+        event_bus.publish(Event(
+            EventType.MOUSE_CLICKED,
+            {
+                "button": button.value,
+                "position": (pos.x(), pos.y()),
+                "modifiers": event.modifiers().value
+            },
+            "MainWindow"
+        ))
+
+        super().mousePressEvent(event)
+
+    def mouseReleaseEvent(self, event: QMouseEvent) -> None:
+        """处理鼠标释放事件"""
+        button = event.button()
+
+        # 触发input_handler鼠标释放事件
+        button_map = {Qt.MouseButton.LeftButton: 0, Qt.MouseButton.RightButton: 1, Qt.MouseButton.MiddleButton: 2}
+        if button in button_map:
+            input_handler.handle_mouse_button_event(None, button_map[button], 0, 0)  # RELEASE action
+
+        super().mouseReleaseEvent(event)
+
+    def mouseMoveEvent(self, event: QMouseEvent) -> None:
+        """处理鼠标移动事件"""
+        pos = event.position()
+
+        # 获取鼠标位置相对于OpenGL widget的坐标
+        if self._opengl_widget:
+            widget_pos = self._opengl_widget.pos()
+            relative_x = pos.x() - widget_pos.x()
+            relative_y = pos.y() - widget_pos.y()
+        else:
+            relative_x = pos.x()
+            relative_y = pos.y()
+
+        # 更新状态管理器中的鼠标位置
+        state_manager.set("mouse_x", relative_x)
+        state_manager.set("mouse_y", relative_y)
+
+        # 发布鼠标移动事件
+        event_bus.publish(Event(
+            EventType.MOUSE_MOVED,
+            {
+                "position": (pos.x(), pos.y()),
+                "buttons": event.buttons().value,
+                "modifiers": event.modifiers().value
+            },
+            "MainWindow"
+        ))
+
+        super().mouseMoveEvent(event)
+
+    def wheelEvent(self, event: QWheelEvent) -> None:
+        """处理鼠标滚轮事件"""
+        delta = event.angleDelta()
+
+        # 发布滚轮事件
+        event_bus.publish(Event(
+            EventType.MOUSE_SCROLLED,
+            {
+                "offset": (delta.x() / 120.0, delta.y() / 120.0),  # 转换为标准滚轮单位
+                "position": (event.position().x(), event.position().y()),
+                "modifiers": event.modifiers().value
+            },
+            "MainWindow"
+        ))
+
+        super().wheelEvent(event)
 
     @property
     def opengl_widget(self) -> Optional[OpenGLWidget]:

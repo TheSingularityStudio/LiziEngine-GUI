@@ -7,6 +7,7 @@ from typing import Optional
 from PyQt6.QtWidgets import QWidget
 from PyQt6.QtCore import Qt, QTimer
 from PyQt6.QtOpenGLWidgets import QOpenGLWidget
+from PyQt6.QtGui import QSurfaceFormat
 from OpenGL.GL import *
 from ..core.events import Event, EventType, event_bus
 from ..core.state import state_manager
@@ -16,8 +17,16 @@ from ..graphics.renderer import VectorFieldRenderer
 class OpenGLWidget(QOpenGLWidget):
     """OpenGL渲染器Widget"""
 
-    def __init__(self, parent: Optional[QWidget] = None):
+    def __init__(self, app_core, parent: Optional[QWidget] = None):
         super().__init__(parent)
+
+        self._app_core = app_core
+
+        # 设置OpenGL格式为兼容性模式
+        format = QSurfaceFormat()
+        format.setVersion(3, 3)
+        format.setProfile(QSurfaceFormat.OpenGLContextProfile.CompatibilityProfile)
+        self.setFormat(format)
 
         # 渲染器
         self._renderer = VectorFieldRenderer()
@@ -29,6 +38,7 @@ class OpenGLWidget(QOpenGLWidget):
         event_bus.subscribe(EventType.GRID_UPDATED, self)
         event_bus.subscribe(EventType.VIEW_RESET, self)
         event_bus.subscribe(EventType.TOGGLE_GRID, self)
+        event_bus.subscribe(EventType.VIEW_CHANGED, self)
 
     def initializeGL(self) -> None:
         """初始化OpenGL"""
@@ -58,7 +68,7 @@ class OpenGLWidget(QOpenGLWidget):
 
         try:
             # 获取状态
-            grid = state_manager.get("grid_data", None)
+            grid = self._app_core.grid_manager.grid
             cell_size = state_manager.get("cell_size", 1.0)
             cam_x = state_manager.get("cam_x", 0.0)
             cam_y = state_manager.get("cam_y", 0.0)
@@ -95,6 +105,6 @@ class OpenGLWidget(QOpenGLWidget):
 
     def handle(self, event: Event) -> None:
         """处理事件"""
-        if event.type in [EventType.GRID_UPDATED, EventType.VIEW_RESET, EventType.TOGGLE_GRID]:
+        if event.type in [EventType.GRID_UPDATED, EventType.VIEW_RESET, EventType.TOGGLE_GRID, EventType.VIEW_CHANGED]:
             # 触发重绘
             self.update()

@@ -21,14 +21,11 @@ class UIManager:
         self._last_mouse_x = None
         self._last_mouse_y = None
 
-        # 左键按下标志
-        self._mouse_left_pressed = False
+        # 鼠标按钮状态
+        self._mouse_buttons_pressed = set()  # 使用集合跟踪按下的按钮
 
         # 左键按下时选择的标记
         self._selected_marker = None
-
-        # 鼠标按钮状态
-        self._mouse_middle_pressed = False
 
     def register_callbacks(self, grid: np.ndarray, on_space=None, on_r=None, on_g=None, on_c=None, on_u=None, on_v=None, on_f=None):
         self._grid = grid
@@ -119,13 +116,32 @@ class UIManager:
 
         def on_mouse_left_press():
             try:
-                # 设置左键按下标志
-                self._mouse_left_pressed = True
+                # 添加左键到按下按钮集合
+                self._mouse_buttons_pressed.add(1)  # 左键
 
-                mx, my = input_handler.get_mouse_position()
+                from lizi_engine.core.state import state_manager
+                mx = state_manager.get("mouse_x", 0.0)
+                my = state_manager.get("mouse_y", 0.0)
                 self._selected_marker = self.controller.handle_mouse_left_press(mx, my)
             except Exception as e:
                 print(f"[错误] 处理鼠标左键按下时发生异常: {e}")
+
+        def on_mouse_left_release():
+            # 从按下按钮集合中移除左键
+            self._mouse_buttons_pressed.discard(1)
+            self._selected_marker = None
+
+        def on_mouse_middle_press():
+            # 添加中键到按下按钮集合
+            self._mouse_buttons_pressed.add(2)  # 中键
+            # 初始化最后鼠标位置以避免拖拽时的跳跃
+            from lizi_engine.core.state import state_manager
+            self._last_mouse_x = state_manager.get("mouse_x", 0.0)
+            self._last_mouse_y = state_manager.get("mouse_y", 0.0)
+
+        def on_mouse_middle_release():
+            # 从按下按钮集合中移除中键
+            self._mouse_buttons_pressed.discard(2)
 
         # 注册键盘和鼠标回调
         input_handler.register_key_callback(KeyMap.SPACE, MouseMap.PRESS, on_space_press)
@@ -137,52 +153,36 @@ class UIManager:
         input_handler.register_key_callback(KeyMap.F, MouseMap.PRESS, on_f_press)
 
         input_handler.register_mouse_callback(MouseMap.LEFT, MouseMap.PRESS, on_mouse_left_press)
-
-        # 添加鼠标左键释放的回调
-        def on_mouse_left_release():
-            # 清除左键按下标志和选定的标记
-            self._mouse_left_pressed = False
-            self._selected_marker = None
-
         input_handler.register_mouse_callback(MouseMap.LEFT, MouseMap.RELEASE, on_mouse_left_release)
-
-        # 添加鼠标中键按下和释放的回调
-        def on_mouse_middle_press():
-            # 设置中键按下标志
-            self._mouse_middle_pressed = True
-
-        def on_mouse_middle_release():
-            # 清除中键按下标志
-            self._mouse_middle_pressed = False
-
-        # 注册鼠标中键回调
         input_handler.register_mouse_callback(MouseMap.MIDDLE, MouseMap.PRESS, on_mouse_middle_press)
         input_handler.register_mouse_callback(MouseMap.MIDDLE, MouseMap.RELEASE, on_mouse_middle_release)
 
     def process_mouse_drag(self):
-        window = self.window
+        from lizi_engine.core.state import state_manager
         # 处理鼠标左键持续按下，在标记位置添加向量
-        if self._mouse_left_pressed and self._selected_marker is not None:
+        if 1 in self._mouse_buttons_pressed and self._selected_marker is not None:
             try:
-                mx, my = window._mouse_x, window._mouse_y
+                mx = state_manager.get("mouse_x", 0.0)
+                my = state_manager.get("mouse_y", 0.0)
                 self.controller.handle_mouse_drag(mx, my, self._selected_marker)
             except Exception as e:
                 print(f"[错误] 处理左键持续按下时发生异常: {e}")
 
         # 只在鼠标中键按下时才允许拖动视图
-        if self._mouse_middle_pressed:
-            x, y = window._mouse_x, window._mouse_y
-
-            dx = x - (self._last_mouse_x if self._last_mouse_x is not None else x)
-            dy = y - (self._last_mouse_y if self._last_mouse_y is not None else y)
-
+        if 2 in self._mouse_buttons_pressed:  # 中键
             try:
+                x = state_manager.get("mouse_x", 0.0)
+                y = state_manager.get("mouse_y", 0.0)
+
+                dx = x - (self._last_mouse_x if self._last_mouse_x is not None else x)
+                dy = y - (self._last_mouse_y if self._last_mouse_y is not None else y)
+
                 self.controller.handle_mouse_drag_view(dx, dy)
+
+                self._last_mouse_x = x
+                self._last_mouse_y = y
             except Exception as e:
                 print(f"[错误] process_mouse_drag_view 异常: {e}")
-
-            self._last_mouse_x = x
-            self._last_mouse_y = y
         else:
             # 清除上次位置，避免下次拖拽跳跃
             self._last_mouse_x = None

@@ -355,7 +355,7 @@ class AppCore:
                 self._app = QApplication([])
 
             # 创建主窗口
-            self._main_window = MainWindow()
+            self._main_window = MainWindow(self)
             self._main_window.show()
 
             print("[应用核心] GUI初始化成功")
