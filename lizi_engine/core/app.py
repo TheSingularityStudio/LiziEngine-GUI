@@ -136,6 +136,22 @@ class GridManager(EventHandler):
                     "GridManager"
                 ))
 
+    def set_grid(self, new_grid: np.ndarray) -> None:
+        """设置整个网格"""
+        with self._lock:
+            if self._grid is not None and new_grid.shape == self._grid.shape:
+                self._grid[:] = new_grid
+
+                # 更新状态
+                self._state_manager.set("grid_updated", True)
+
+                # 发布事件
+                self._event_bus.publish(Event(
+                    EventType.GRID_UPDATED,
+                    {"updates": "entire_grid"},
+                    "GridManager"
+                ))
+
     def clear_grid(self) -> None:
         """清空网格"""
         with self._lock:

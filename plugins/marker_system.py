@@ -138,6 +138,9 @@ class MarkerSystem:
         # 再次更新标记
         self.update_markers(grid)
 
+        # 将更新后的网格设置回GridManager，确保及时通知渲染器
+        self.app_core.grid_manager.set_grid(grid)
+
     def _sync_to_state_manager(self) -> None:
         """将标记列表同步到状态管理器"""
         try:

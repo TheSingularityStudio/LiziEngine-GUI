@@ -93,26 +93,26 @@ class VectorFieldRenderer(EventHandler):
         self._event_bus = event_bus
         self._state_manager = state_manager
 
-        # 着色器源代码
+        # 着色器源代码 - 更新到现代OpenGL
         self._vertex_shader_src = """
-        #version 120
-        attribute vec2 a_pos;
-        attribute vec3 a_col;
-        varying vec3 v_col;
+        #version 330 core
+        layout (location = 0) in vec2 a_pos;
+        layout (location = 1) in vec3 a_col;
+        out vec3 v_col;
         uniform vec2 u_center;
         uniform vec2 u_half;
         void main() {
             vec2 ndc = (a_pos - u_center) / u_half;
-            ndc.y = -ndc.y;
             gl_Position = vec4(ndc, 0.0, 1.0);
             v_col = a_col;
         }
         """
         self._fragment_shader_src = """
-        #version 120
-        varying vec3 v_col;
+        #version 330 core
+        in vec3 v_col;
+        out vec4 FragColor;
         void main() {
-            gl_FragColor = vec4(v_col, 1.0);
+            FragColor = vec4(v_col, 1.0);
         }
         """
 
@@ -207,23 +207,17 @@ class VectorFieldRenderer(EventHandler):
         end_x = start_x + non_zero_vx
         end_y = start_y + non_zero_vy
 
-        # 创建顶点数组 - 每个向量需要两个点（起点和终点）
-        # 每个点有5个分量 (x, y, r, g, b)
-        vertices = np.zeros(len(non_zero_x) * 2 * 5, dtype=np.float32)
+        # 创建顶点数组 - 使用更清晰的构造方式
+        num_vectors = len(non_zero_x)
+        vertices = np.zeros(num_vectors * 10, dtype=np.float32)  # 每个向量10个float (起点5 + 终点5)
 
-        # 填充起点数据
-        vertices[0::10] = start_x  # 起点x坐标
-        vertices[1::10] = start_y  # 起点y坐标
-        vertices[2::10] = vector_color[0]  # R
-        vertices[3::10] = vector_color[1]  # G
-        vertices[4::10] = vector_color[2]  # B
-
-        # 填充终点数据
-        vertices[5::10] = end_x  # 终点x坐标
-        vertices[6::10] = end_y  # 终点y坐标
-        vertices[7::10] = vector_color[0]  # R
-        vertices[8::10] = vector_color[1]  # G
-        vertices[9::10] = vector_color[2]  # B
+        # 构造顶点数据：交替放置起点和终点
+        for i in range(num_vectors):
+            base_idx = i * 10
+            # 起点
+            vertices[base_idx:base_idx+5] = [start_x[i], start_y[i], vector_color[0], vector_color[1], vector_color[2]]
+            # 终点
+            vertices[base_idx+5:base_idx+10] = [end_x[i], end_y[i], vector_color[0], vector_color[1], vector_color[2]]
 
         # 绑定VAO和VBO
         glBindVertexArray(self._vao)
