@@ -9,7 +9,7 @@ import sys
 import threading
 from typing import Any, Dict, Optional, Union, List
 from dataclasses import dataclass, asdict, field
-from .state import StateManager
+from .state import StateManager, state_manager
 from .events import Event, EventBus, EventType, event_bus
 
 @dataclass
@@ -39,8 +39,8 @@ class ConfigManager:
         self._config_file = config_file
         self._options: Dict[str, ConfigOption] = {}
         self._lock = threading.RLock()
-        self._state_manager = StateManager()
-        self._event_bus = EventBus()
+        self._state_manager = state_manager
+        self._event_bus = event_bus
         self._logger = logging.getLogger(__name__)
 
         # 初始化默认配置

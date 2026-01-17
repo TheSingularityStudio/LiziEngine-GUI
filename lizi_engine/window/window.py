@@ -6,7 +6,6 @@ import glfw
 import numpy as np
 from OpenGL.GL import *
 from typing import Optional, Callable, Dict, Any, Tuple
-from ..core.config import config_manager
 from ..core.events import Event, EventType, event_bus, EventHandler, FunctionEventHandler
 from ..core.state import state_manager
 from ..graphics.renderer import VectorFieldRenderer
@@ -17,7 +16,6 @@ class Window(EventHandler):
     def __init__(self, title: str = "LiziEngine", width: int = 800, height: int = 600):
         self._event_bus = event_bus
         self._state_manager = state_manager
-        self._config_manager = config_manager
         self._renderer = None
 
         # 窗口属性
@@ -125,7 +123,7 @@ class Window(EventHandler):
         glClearColor(0.1, 0.1, 0.1, 1.0)
 
         # 启用抗锯齿
-        if self._config_manager.get("antialiasing", True):
+        if self._state_manager.get("antialiasing", True):
             glEnable(GL_LINE_SMOOTH)
             glHint(GL_LINE_SMOOTH_HINT, GL_NICEST)
 
@@ -337,7 +335,7 @@ class Window(EventHandler):
         # 渲染标记（如果有）
         try:
             self._renderer.render_markers(
-                cell_size=self._config_manager.get("cell_size", 1.0),
+                cell_size=self._state_manager.get("cell_size", 1.0),
                 cam_x=cam_x,
                 cam_y=cam_y,
                 cam_zoom=cam_zoom,
@@ -351,20 +349,20 @@ class Window(EventHandler):
         # 渲染向量场
         self._renderer.render_vector_field(
             grid,
-            cell_size=self._config_manager.get("cell_size", 1.0),
+            cell_size=self._state_manager.get("cell_size", 1.0),
             cam_x=cam_x,
             cam_y=cam_y,
             cam_zoom=cam_zoom,
             viewport_width=viewport_width,
             viewport_height=viewport_height
         )
-        
+
         # 渲染网格
         self._renderer.render_grid(
-            grid, 
-            cell_size=self._config_manager.get("cell_size", 1.0),
-            cam_x=cam_x, 
-            cam_y=cam_y, 
+            grid,
+            cell_size=self._state_manager.get("cell_size", 1.0),
+            cam_x=cam_x,
+            cam_y=cam_y,
             cam_zoom=cam_zoom,
             viewport_width=viewport_width,
             viewport_height=viewport_height
