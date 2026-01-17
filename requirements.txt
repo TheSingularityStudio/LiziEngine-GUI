@@ -5,3 +5,4 @@ glfw>=2.5.0
 PyOpenGL>=3.1.6
 pyopencl>=2021.1.0
 pybind11>=2.6.0
+PyQt6>=6.4.0

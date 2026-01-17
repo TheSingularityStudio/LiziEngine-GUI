@@ -13,7 +13,14 @@ from .config import ConfigManager, config_manager
 from .container import container
 from ..compute.vector_field import VectorFieldCalculator
 from ..graphics.renderer import VectorFieldRenderer
-from ..window.window import Window
+from ..gui.main_window import MainWindow
+
+# 检查GUI可用性
+try:
+    from PyQt6.QtWidgets import QApplication
+    GUI_AVAILABLE = True
+except ImportError:
+    GUI_AVAILABLE = False
 
 class FPSLimiter(EventHandler):
     """FPS限制器"""
@@ -261,6 +268,10 @@ class AppCore:
         self._event_bus = event_bus
         self._config_manager = config_manager
 
+        # GUI相关
+        self._main_window = None
+        self._app = None
+
         # 初始化各个管理器
         self._grid_manager = GridManager(self._state_manager, self._event_bus)
         self._view_manager = ViewManager(self._state_manager, self._event_bus)
@@ -278,6 +289,10 @@ class AppCore:
         if self._renderer is None:
             self._renderer = VectorFieldRenderer()
             container.register_singleton(VectorFieldRenderer, self._renderer)
+
+        # 初始化GUI
+        if GUI_AVAILABLE:
+            self._init_gui()
 
         # 发布应用初始化事件
         self._event_bus.publish(Event(
@@ -325,6 +340,34 @@ class AppCore:
     def renderer(self) -> VectorFieldRenderer:
         """获取渲染器"""
         return self._renderer
+
+    @property
+    def main_window(self) -> Optional['MainWindow']:
+        """获取主窗口"""
+        return self._main_window
+
+    def _init_gui(self) -> None:
+        """初始化GUI"""
+        try:
+            # 创建QApplication（如果不存在）
+            self._app = QApplication.instance()
+            if self._app is None:
+                self._app = QApplication([])
+
+            # 创建主窗口
+            self._main_window = MainWindow()
+            self._main_window.show()
+
+            print("[应用核心] GUI初始化成功")
+        except Exception as e:
+            print(f"[应用核心] GUI初始化失败: {e}")
+            GUI_AVAILABLE = False
+
+    def run_gui(self) -> int:
+        """运行GUI应用"""
+        if self._app and GUI_AVAILABLE:
+            return self._app.exec()
+        return 0
 
     def shutdown(self) -> None:
         """关闭应用核心"""
