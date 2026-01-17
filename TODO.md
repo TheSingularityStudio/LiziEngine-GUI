@@ -1,5 +1,0 @@
-- [x] Fix inverted panning direction in plugins/controller.py
-- [x] Disable event-based mouse drag handling in plugins/controller.py
-- [x] Connect PyQt6 mouse events to input_handler callbacks in lizi_engine/gui/main_window.py
-- [x] Update UI manager to use proper button tracking in plugins/ui.py
-- [x] Test the fixes by running examples/basic_usage.py (GUI app, fixes implemented)

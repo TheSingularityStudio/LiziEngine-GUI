@@ -143,19 +143,19 @@ class UIManager:
             # 从按下按钮集合中移除中键
             self._mouse_buttons_pressed.discard(2)
 
-        # 注册键盘和鼠标回调
-        input_handler.register_key_callback(KeyMap.SPACE, MouseMap.PRESS, on_space_press)
-        input_handler.register_key_callback(KeyMap.R, MouseMap.PRESS, on_r_press)
-        input_handler.register_key_callback(KeyMap.G, MouseMap.PRESS, on_g_press)
-        input_handler.register_key_callback(KeyMap.C, MouseMap.PRESS, on_c_press)
-        input_handler.register_key_callback(KeyMap.U, MouseMap.PRESS, on_u_press)
-        input_handler.register_key_callback(KeyMap.V, MouseMap.PRESS, on_v_press)
-        input_handler.register_key_callback(KeyMap.F, MouseMap.PRESS, on_f_press)
+        # 注册键盘和鼠标回调 (使用PyQt6动作常量: 1=PRESS, 0=RELEASE)
+        input_handler.register_key_callback(KeyMap.SPACE, 1, on_space_press)  # PRESS
+        input_handler.register_key_callback(KeyMap.R, 1, on_r_press)  # PRESS
+        input_handler.register_key_callback(KeyMap.G, 1, on_g_press)  # PRESS
+        input_handler.register_key_callback(KeyMap.C, 1, on_c_press)  # PRESS
+        input_handler.register_key_callback(KeyMap.U, 1, on_u_press)  # PRESS
+        input_handler.register_key_callback(KeyMap.V, 1, on_v_press)  # PRESS
+        input_handler.register_key_callback(KeyMap.F, 1, on_f_press)  # PRESS
 
-        input_handler.register_mouse_callback(MouseMap.LEFT, MouseMap.PRESS, on_mouse_left_press)
-        input_handler.register_mouse_callback(MouseMap.LEFT, MouseMap.RELEASE, on_mouse_left_release)
-        input_handler.register_mouse_callback(MouseMap.MIDDLE, MouseMap.PRESS, on_mouse_middle_press)
-        input_handler.register_mouse_callback(MouseMap.MIDDLE, MouseMap.RELEASE, on_mouse_middle_release)
+        input_handler.register_mouse_callback(MouseMap.LEFT, 1, on_mouse_left_press)  # PRESS
+        input_handler.register_mouse_callback(MouseMap.LEFT, 0, on_mouse_left_release)  # RELEASE
+        input_handler.register_mouse_callback(MouseMap.MIDDLE, 1, on_mouse_middle_press)  # PRESS
+        input_handler.register_mouse_callback(MouseMap.MIDDLE, 0, on_mouse_middle_release)  # RELEASE
 
     def process_mouse_drag(self):
         from lizi_engine.core.state import state_manager

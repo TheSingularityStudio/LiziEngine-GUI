@@ -2,15 +2,16 @@
 鼠标映射 - 定义鼠标按钮的映射
 """
 import glfw
+from PyQt6.QtCore import Qt
 
 
 class MouseMap:
     """鼠标映射类，提供鼠标按钮的常量定义"""
 
-    # 鼠标按钮
-    LEFT = glfw.MOUSE_BUTTON_LEFT
-    RIGHT = glfw.MOUSE_BUTTON_RIGHT
-    MIDDLE = glfw.MOUSE_BUTTON_MIDDLE
+    # 鼠标按钮 (兼容PyQt6和GLFW)
+    LEFT = Qt.MouseButton.LeftButton.value  # 1
+    RIGHT = Qt.MouseButton.RightButton.value  # 2
+    MIDDLE = Qt.MouseButton.MiddleButton.value  # 4
     _4 = glfw.MOUSE_BUTTON_4
     _5 = glfw.MOUSE_BUTTON_5
     _6 = glfw.MOUSE_BUTTON_6

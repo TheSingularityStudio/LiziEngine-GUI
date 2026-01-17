@@ -10,7 +10,6 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from lizi_engine.core.container import container
 from lizi_engine.core.app import AppCore, GUI_AVAILABLE
-from lizi_engine.window.window import Window
 from lizi_engine.compute.vector_field import vector_calculator
 from lizi_engine.core.plugin import UIManager, Controller, MarkerSystem, add_inward_edge_vectors
 

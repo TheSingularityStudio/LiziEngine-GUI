@@ -234,32 +234,31 @@ class MainWindow(QMainWindow):
         state_manager.set("mouse_x", relative_x)
         state_manager.set("mouse_y", relative_y)
 
-        # 触发input_handler鼠标按下事件 (映射PyQt6按钮到GLFW按钮)
-        button_map = {Qt.MouseButton.LeftButton: 0, Qt.MouseButton.RightButton: 1, Qt.MouseButton.MiddleButton: 2}
-        if button in button_map:
-            input_handler.handle_mouse_button_event(None, button_map[button], 1, 0)  # PRESS action
-
-        # 发布鼠标按下事件
-        event_bus.publish(Event(
-            EventType.MOUSE_CLICKED,
-            {
-                "button": button.value,
-                "position": (pos.x(), pos.y()),
-                "modifiers": event.modifiers().value
-            },
-            "MainWindow"
-        ))
+        # 触发input_handler鼠标按下事件 (使用PyQt6按钮值)
+        input_handler.handle_mouse_button_event(button.value, 1, (relative_x, relative_y), event.modifiers())
 
         super().mousePressEvent(event)
 
     def mouseReleaseEvent(self, event: QMouseEvent) -> None:
         """处理鼠标释放事件"""
         button = event.button()
+        pos = event.position()
+
+        # 获取鼠标位置相对于OpenGL widget的坐标
+        if self._opengl_widget:
+            widget_pos = self._opengl_widget.pos()
+            relative_x = pos.x() - widget_pos.x()
+            relative_y = pos.y() - widget_pos.y()
+        else:
+            relative_x = pos.x()
+            relative_y = pos.y()
+
+        # 更新状态管理器中的鼠标位置
+        state_manager.set("mouse_x", relative_x)
+        state_manager.set("mouse_y", relative_y)
 
         # 触发input_handler鼠标释放事件
-        button_map = {Qt.MouseButton.LeftButton: 0, Qt.MouseButton.RightButton: 1, Qt.MouseButton.MiddleButton: 2}
-        if button in button_map:
-            input_handler.handle_mouse_button_event(None, button_map[button], 0, 0)  # RELEASE action
+        input_handler.handle_mouse_button_event(button.value, 0, (relative_x, relative_y), event.modifiers())  # RELEASE action
 
         super().mouseReleaseEvent(event)
 
@@ -280,33 +279,27 @@ class MainWindow(QMainWindow):
         state_manager.set("mouse_x", relative_x)
         state_manager.set("mouse_y", relative_y)
 
-        # 发布鼠标移动事件
-        event_bus.publish(Event(
-            EventType.MOUSE_MOVED,
-            {
-                "position": (pos.x(), pos.y()),
-                "buttons": event.buttons().value,
-                "modifiers": event.modifiers().value
-            },
-            "MainWindow"
-        ))
+        # 触发input_handler鼠标移动事件
+        input_handler.handle_mouse_move_event((relative_x, relative_y), event.buttons(), event.modifiers())
 
         super().mouseMoveEvent(event)
 
     def wheelEvent(self, event: QWheelEvent) -> None:
         """处理鼠标滚轮事件"""
         delta = event.angleDelta()
+        pos = event.position()
 
-        # 发布滚轮事件
-        event_bus.publish(Event(
-            EventType.MOUSE_SCROLLED,
-            {
-                "offset": (delta.x() / 120.0, delta.y() / 120.0),  # 转换为标准滚轮单位
-                "position": (event.position().x(), event.position().y()),
-                "modifiers": event.modifiers().value
-            },
-            "MainWindow"
-        ))
+        # 获取鼠标位置相对于OpenGL widget的坐标
+        if self._opengl_widget:
+            widget_pos = self._opengl_widget.pos()
+            relative_x = pos.x() - widget_pos.x()
+            relative_y = pos.y() - widget_pos.y()
+        else:
+            relative_x = pos.x()
+            relative_y = pos.y()
+
+        # 触发input_handler滚轮事件
+        input_handler.handle_scroll_event((delta.x() / 120.0, delta.y() / 120.0), (relative_x, relative_y), event.modifiers())
 
         super().wheelEvent(event)
 

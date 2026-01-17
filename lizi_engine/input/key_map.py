@@ -1,7 +1,7 @@
 """
 键盘映射 - 定义常用键的映射
 """
-import glfw
+from PyQt6.QtCore import Qt
 
 
 class KeyMap:
@@ -9,131 +9,131 @@ class KeyMap:
 
     # 特殊键
     UNKNOWN = -1
-    SPACE = glfw.KEY_SPACE
-    APOSTROPHE = glfw.KEY_APOSTROPHE
-    COMMA = glfw.KEY_COMMA
-    MINUS = glfw.KEY_MINUS
-    PERIOD = glfw.KEY_PERIOD
-    SLASH = glfw.KEY_SLASH
-    SEMICOLON = glfw.KEY_SEMICOLON
-    EQUAL = glfw.KEY_EQUAL
+    SPACE = Qt.Key.Key_Space.value
+    APOSTROPHE = Qt.Key.Key_Apostrophe.value
+    COMMA = Qt.Key.Key_Comma.value
+    MINUS = Qt.Key.Key_Minus.value
+    PERIOD = Qt.Key.Key_Period.value
+    SLASH = Qt.Key.Key_Slash.value
+    SEMICOLON = Qt.Key.Key_Semicolon.value
+    EQUAL = Qt.Key.Key_Equal.value
 
     # 数字键
-    _0 = glfw.KEY_0
-    _1 = glfw.KEY_1
-    _2 = glfw.KEY_2
-    _3 = glfw.KEY_3
-    _4 = glfw.KEY_4
-    _5 = glfw.KEY_5
-    _6 = glfw.KEY_6
-    _7 = glfw.KEY_7
-    _8 = glfw.KEY_8
-    _9 = glfw.KEY_9
+    _0 = Qt.Key.Key_0.value
+    _1 = Qt.Key.Key_1.value
+    _2 = Qt.Key.Key_2.value
+    _3 = Qt.Key.Key_3.value
+    _4 = Qt.Key.Key_4.value
+    _5 = Qt.Key.Key_5.value
+    _6 = Qt.Key.Key_6.value
+    _7 = Qt.Key.Key_7.value
+    _8 = Qt.Key.Key_8.value
+    _9 = Qt.Key.Key_9.value
 
     # 字母键
-    A = glfw.KEY_A
-    B = glfw.KEY_B
-    C = glfw.KEY_C
-    D = glfw.KEY_D
-    E = glfw.KEY_E
-    F = glfw.KEY_F
-    G = glfw.KEY_G
-    H = glfw.KEY_H
-    I = glfw.KEY_I
-    J = glfw.KEY_J
-    K = glfw.KEY_K
-    L = glfw.KEY_L
-    M = glfw.KEY_M
-    N = glfw.KEY_N
-    O = glfw.KEY_O
-    P = glfw.KEY_P
-    Q = glfw.KEY_Q
-    R = glfw.KEY_R
-    S = glfw.KEY_S
-    T = glfw.KEY_T
-    U = glfw.KEY_U
-    V = glfw.KEY_V
-    W = glfw.KEY_W
-    X = glfw.KEY_X
-    Y = glfw.KEY_Y
-    Z = glfw.KEY_Z
+    A = Qt.Key.Key_A.value
+    B = Qt.Key.Key_B.value
+    C = Qt.Key.Key_C.value
+    D = Qt.Key.Key_D.value
+    E = Qt.Key.Key_E.value
+    F = Qt.Key.Key_F.value
+    G = Qt.Key.Key_G.value
+    H = Qt.Key.Key_H.value
+    I = Qt.Key.Key_I.value
+    J = Qt.Key.Key_J.value
+    K = Qt.Key.Key_K.value
+    L = Qt.Key.Key_L.value
+    M = Qt.Key.Key_M.value
+    N = Qt.Key.Key_N.value
+    O = Qt.Key.Key_O.value
+    P = Qt.Key.Key_P.value
+    Q = Qt.Key.Key_Q.value
+    R = Qt.Key.Key_R.value
+    S = Qt.Key.Key_S.value
+    T = Qt.Key.Key_T.value
+    U = Qt.Key.Key_U.value
+    V = Qt.Key.Key_V.value
+    W = Qt.Key.Key_W.value
+    X = Qt.Key.Key_X.value
+    Y = Qt.Key.Key_Y.value
+    Z = Qt.Key.Key_Z.value
 
     # 功能键
-    F1 = glfw.KEY_F1
-    F2 = glfw.KEY_F2
-    F3 = glfw.KEY_F3
-    F4 = glfw.KEY_F4
-    F5 = glfw.KEY_F5
-    F6 = glfw.KEY_F6
-    F7 = glfw.KEY_F7
-    F8 = glfw.KEY_F8
-    F9 = glfw.KEY_F9
-    F10 = glfw.KEY_F10
-    F11 = glfw.KEY_F11
-    F12 = glfw.KEY_F12
+    F1 = Qt.Key.Key_F1.value
+    F2 = Qt.Key.Key_F2.value
+    F3 = Qt.Key.Key_F3.value
+    F4 = Qt.Key.Key_F4.value
+    F5 = Qt.Key.Key_F5.value
+    F6 = Qt.Key.Key_F6.value
+    F7 = Qt.Key.Key_F7.value
+    F8 = Qt.Key.Key_F8.value
+    F9 = Qt.Key.Key_F9.value
+    F10 = Qt.Key.Key_F10.value
+    F11 = Qt.Key.Key_F11.value
+    F12 = Qt.Key.Key_F12.value
 
     # 方向键
-    UP = glfw.KEY_UP
-    DOWN = glfw.KEY_DOWN
-    LEFT = glfw.KEY_LEFT
-    RIGHT = glfw.KEY_RIGHT
+    UP = Qt.Key.Key_Up.value
+    DOWN = Qt.Key.Key_Down.value
+    LEFT = Qt.Key.Key_Left.value
+    RIGHT = Qt.Key.Key_Right.value
 
     # 特殊键
-    LEFT_SHIFT = glfw.KEY_LEFT_SHIFT
-    RIGHT_SHIFT = glfw.KEY_RIGHT_SHIFT
-    LEFT_CONTROL = glfw.KEY_LEFT_CONTROL
-    RIGHT_CONTROL = glfw.KEY_RIGHT_CONTROL
-    LEFT_ALT = glfw.KEY_LEFT_ALT
-    RIGHT_ALT = glfw.KEY_RIGHT_ALT
-    LEFT_SUPER = glfw.KEY_LEFT_SUPER
-    RIGHT_SUPER = glfw.KEY_RIGHT_SUPER
-    TAB = glfw.KEY_TAB
-    ENTER = glfw.KEY_ENTER
-    BACKSPACE = glfw.KEY_BACKSPACE
-    INSERT = glfw.KEY_INSERT
-    DELETE = glfw.KEY_DELETE
-    PAGE_UP = glfw.KEY_PAGE_UP
-    PAGE_DOWN = glfw.KEY_PAGE_DOWN
-    HOME = glfw.KEY_HOME
-    END = glfw.KEY_END
-    CAPS_LOCK = glfw.KEY_CAPS_LOCK
-    SCROLL_LOCK = glfw.KEY_SCROLL_LOCK
-    NUM_LOCK = glfw.KEY_NUM_LOCK
-    PRINT_SCREEN = glfw.KEY_PRINT_SCREEN
-    PAUSE = glfw.KEY_PAUSE
-    ESCAPE = glfw.KEY_ESCAPE
+    LEFT_SHIFT = Qt.Key.Key_Shift.value
+    RIGHT_SHIFT = Qt.Key.Key_Shift.value
+    LEFT_CONTROL = Qt.Key.Key_Control.value
+    RIGHT_CONTROL = Qt.Key.Key_Control.value
+    LEFT_ALT = Qt.Key.Key_Alt.value
+    RIGHT_ALT = Qt.Key.Key_Alt.value
+    LEFT_SUPER = Qt.Key.Key_Meta.value
+    RIGHT_SUPER = Qt.Key.Key_Meta.value
+    TAB = Qt.Key.Key_Tab.value
+    ENTER = Qt.Key.Key_Enter.value
+    BACKSPACE = Qt.Key.Key_Backspace.value
+    INSERT = Qt.Key.Key_Insert.value
+    DELETE = Qt.Key.Key_Delete.value
+    PAGE_UP = Qt.Key.Key_PageUp.value
+    PAGE_DOWN = Qt.Key.Key_PageDown.value
+    HOME = Qt.Key.Key_Home.value
+    END = Qt.Key.Key_End.value
+    CAPS_LOCK = Qt.Key.Key_CapsLock.value
+    SCROLL_LOCK = Qt.Key.Key_ScrollLock.value
+    NUM_LOCK = Qt.Key.Key_NumLock.value
+    PRINT_SCREEN = Qt.Key.Key_Print.value
+    PAUSE = Qt.Key.Key_Pause.value
+    ESCAPE = Qt.Key.Key_Escape.value
 
     # 小键盘
-    KP_0 = glfw.KEY_KP_0
-    KP_1 = glfw.KEY_KP_1
-    KP_2 = glfw.KEY_KP_2
-    KP_3 = glfw.KEY_KP_3
-    KP_4 = glfw.KEY_KP_4
-    KP_5 = glfw.KEY_KP_5
-    KP_6 = glfw.KEY_KP_6
-    KP_7 = glfw.KEY_KP_7
-    KP_8 = glfw.KEY_KP_8
-    KP_9 = glfw.KEY_KP_9
-    KP_DECIMAL = glfw.KEY_KP_DECIMAL
-    KP_DIVIDE = glfw.KEY_KP_DIVIDE
-    KP_MULTIPLY = glfw.KEY_KP_MULTIPLY
-    KP_SUBTRACT = glfw.KEY_KP_SUBTRACT
-    KP_ADD = glfw.KEY_KP_ADD
-    KP_ENTER = glfw.KEY_KP_ENTER
-    KP_EQUAL = glfw.KEY_KP_EQUAL
+    KP_0 = Qt.Key.Key_0.value  # Qt doesn't distinguish keypad from main keyboard
+    KP_1 = Qt.Key.Key_1.value
+    KP_2 = Qt.Key.Key_2.value
+    KP_3 = Qt.Key.Key_3.value
+    KP_4 = Qt.Key.Key_4.value
+    KP_5 = Qt.Key.Key_5.value
+    KP_6 = Qt.Key.Key_6.value
+    KP_7 = Qt.Key.Key_7.value
+    KP_8 = Qt.Key.Key_8.value
+    KP_9 = Qt.Key.Key_9.value
+    KP_DECIMAL = Qt.Key.Key_Period.value
+    KP_DIVIDE = Qt.Key.Key_Slash.value
+    KP_MULTIPLY = Qt.Key.Key_Asterisk.value
+    KP_SUBTRACT = Qt.Key.Key_Minus.value
+    KP_ADD = Qt.Key.Key_Plus.value
+    KP_ENTER = Qt.Key.Key_Enter.value
+    KP_EQUAL = Qt.Key.Key_Equal.value
 
-    # 修饰键
-    MOD_SHIFT = glfw.MOD_SHIFT
-    MOD_CONTROL = glfw.MOD_CONTROL
-    MOD_ALT = glfw.MOD_ALT
-    MOD_SUPER = glfw.MOD_SUPER
+    # 修饰键 (Qt uses different approach for modifiers)
+    MOD_SHIFT = Qt.KeyboardModifier.ShiftModifier.value
+    MOD_CONTROL = Qt.KeyboardModifier.ControlModifier.value
+    MOD_ALT = Qt.KeyboardModifier.AltModifier.value
+    MOD_SUPER = Qt.KeyboardModifier.MetaModifier.value
 
     @staticmethod
     def get_key_name(key: int) -> str:
         """获取键名
 
         Args:
-            key: GLFW键码
+            key: PyQt6键码
 
         Returns:
             str: 键名
@@ -199,14 +199,14 @@ class KeyMap:
             KeyMap.DOWN: "Down",
             KeyMap.LEFT: "Left",
             KeyMap.RIGHT: "Right",
-            KeyMap.LEFT_SHIFT: "Left Shift",
-            KeyMap.RIGHT_SHIFT: "Right Shift",
-            KeyMap.LEFT_CONTROL: "Left Control",
-            KeyMap.RIGHT_CONTROL: "Right Control",
-            KeyMap.LEFT_ALT: "Left Alt",
-            KeyMap.RIGHT_ALT: "Right Alt",
-            KeyMap.LEFT_SUPER: "Left Super",
-            KeyMap.RIGHT_SUPER: "Right Super",
+            KeyMap.LEFT_SHIFT: "Shift",
+            KeyMap.RIGHT_SHIFT: "Shift",
+            KeyMap.LEFT_CONTROL: "Control",
+            KeyMap.RIGHT_CONTROL: "Control",
+            KeyMap.LEFT_ALT: "Alt",
+            KeyMap.RIGHT_ALT: "Alt",
+            KeyMap.LEFT_SUPER: "Meta",
+            KeyMap.RIGHT_SUPER: "Meta",
             KeyMap.TAB: "Tab",
             KeyMap.ENTER: "Enter",
             KeyMap.BACKSPACE: "Backspace",
@@ -222,22 +222,22 @@ class KeyMap:
             KeyMap.PRINT_SCREEN: "Print Screen",
             KeyMap.PAUSE: "Pause",
             KeyMap.ESCAPE: "Escape",
-            KeyMap.KP_0: "Keypad 0",
-            KeyMap.KP_1: "Keypad 1",
-            KeyMap.KP_2: "Keypad 2",
-            KeyMap.KP_3: "Keypad 3",
-            KeyMap.KP_4: "Keypad 4",
-            KeyMap.KP_5: "Keypad 5",
-            KeyMap.KP_6: "Keypad 6",
-            KeyMap.KP_7: "Keypad 7",
-            KeyMap.KP_8: "Keypad 8",
-            KeyMap.KP_9: "Keypad 9",
-            KeyMap.KP_DECIMAL: "Keypad Decimal",
-            KeyMap.KP_DIVIDE: "Keypad Divide",
-            KeyMap.KP_MULTIPLY: "Keypad Multiply",
-            KeyMap.KP_SUBTRACT: "Keypad Subtract",
-            KeyMap.KP_ADD: "Keypad Add",
-            KeyMap.KP_ENTER: "Keypad Enter",
-            KeyMap.KP_EQUAL: "Keypad Equal"
+            KeyMap.KP_0: "0",
+            KeyMap.KP_1: "1",
+            KeyMap.KP_2: "2",
+            KeyMap.KP_3: "3",
+            KeyMap.KP_4: "4",
+            KeyMap.KP_5: "5",
+            KeyMap.KP_6: "6",
+            KeyMap.KP_7: "7",
+            KeyMap.KP_8: "8",
+            KeyMap.KP_9: "9",
+            KeyMap.KP_DECIMAL: "Decimal",
+            KeyMap.KP_DIVIDE: "Divide",
+            KeyMap.KP_MULTIPLY: "Multiply",
+            KeyMap.KP_SUBTRACT: "Subtract",
+            KeyMap.KP_ADD: "Add",
+            KeyMap.KP_ENTER: "Enter",
+            KeyMap.KP_EQUAL: "Equal"
         }
         return key_names.get(key, "Unknown")
