@@ -17,16 +17,29 @@ class Controller:
         # 向量场方向状态：True表示朝外，False表示朝内
         self.vector_field_direction = True
 
-    def update(self):
-        """更新控制器状态"""
-        pass
+    def _screen_to_grid(self, mx: float, my: float) -> Tuple[float, float]:
+        """将屏幕坐标转换为网格坐标"""
+        cam_x = self.app_core.state_manager.get("cam_x", 0.0)
+        cam_y = self.app_core.state_manager.get("cam_y", 0.0)
+        cam_zoom = self.app_core.state_manager.get("cam_zoom", 1.0)
+        viewport_width = self.app_core.state_manager.get("viewport_width", 800)
+        viewport_height = self.app_core.state_manager.get("viewport_height", 600)
+        cell_size = self.app_core.state_manager.get("cell_size", 1.0)
+
+        world_x = cam_x + (mx - (viewport_width / 2.0)) / cam_zoom
+        world_y = cam_y + (my - (viewport_height / 2.0)) / cam_zoom
+
+        gx = world_x / cell_size
+        gy = world_y / cell_size
+
+        return gx, gy
 
     def reset_view(self):
         """重置视图"""
         try:
             self.app_core.view_manager.reset_view(self.grid.shape[1], self.grid.shape[0])
-        except Exception:
-            pass
+        except Exception as e:
+            print(f"[错误] reset_view 异常: {e}")
 
     def toggle_grid(self):
         """切换网格显示"""
@@ -35,43 +48,32 @@ class Controller:
 
     def clear_grid(self):
         """清空网格"""
-        self.grid.fill(0.0)
+        try:
+            self.grid.fill(0.0)
+        except Exception as e:
+            print(f"[错误] clear_grid 异常: {e}")
 
     def switch_vector_field_direction(self):
         """切换向量场方向"""
-        self.vector_field_direction = not self.vector_field_direction
-        direction = "朝外" if self.vector_field_direction else "朝内"
-        print(f"[示例] 向量场方向已切换为: {direction}")
+        try:
+            self.vector_field_direction = not self.vector_field_direction
+            direction = "朝外" if self.vector_field_direction else "朝内"
+            print(f"[示例] 向量场方向已切换为: {direction}")
+        except Exception as e:
+            print(f"[错误] 切换向量场方向 异常: {e}")
 
     def place_vector_field(self, mx: float, my: float):
         """在鼠标位置放置向量场"""
         try:
-            cam_x = self.app_core.state_manager.get("cam_x", 0.0)
-            cam_y = self.app_core.state_manager.get("cam_y", 0.0)
-            cam_zoom = self.app_core.state_manager.get("cam_zoom", 1.0)
-            viewport_width = self.app_core.state_manager.get("viewport_width", 800)
-            viewport_height = self.app_core.state_manager.get("viewport_height", 600)
-            cell_size = self.app_core.config_manager.get("cell_size", 1.0)
-
-            world_x = cam_x + (mx - (viewport_width / 2.0)) / cam_zoom
-            world_y = cam_y + (my - (viewport_height / 2.0)) / cam_zoom
-
-            gx = world_x / cell_size
-            gy = world_y / cell_size
+            gx, gy = self._screen_to_grid(mx, my)
 
             h, w = self.grid.shape[:2]
             if gx < 0 or gx >= w or gy < 0 or gy >= h:
                 print(f"[示例] 点击位置超出网格: ({gx}, {gy})")
                 return
 
-            radius = 2
-            mag = 1
+            mag = 1.0  # 固定向量大小
             magnitude = mag if self.vector_field_direction else -mag
-
-            direction = "朝外" if self.vector_field_direction else "朝内"
-            #print(f"[示例] 在网格位置放置向量场: ({gx}, {gy}), radius={radius}, mag={magnitude}, 方向={direction}")
-
-            #self.vector_calculator.create_radial_pattern(self.grid, center=(int(gx), int(gy)), radius=radius, magnitude=magnitude)
 
             # 同时创建一个标记，初始放在点击处（浮点位置）
             self.marker_system.add_marker(gx, gy, float(magnitude))
@@ -83,18 +85,7 @@ class Controller:
     def handle_mouse_left_press(self, mx: float, my: float) -> dict:
         """处理鼠标左键按下，返回选中的标记"""
         try:
-            cam_x = self.app_core.state_manager.get("cam_x", 0.0)
-            cam_y = self.app_core.state_manager.get("cam_y", 0.0)
-            cam_zoom = self.app_core.state_manager.get("cam_zoom", 1.0)
-            viewport_width = self.app_core.state_manager.get("viewport_width", 800)
-            viewport_height = self.app_core.state_manager.get("viewport_height", 600)
-            cell_size = self.app_core.config_manager.get("cell_size", 1.0)
-
-            world_x = cam_x + (mx - (viewport_width / 2.0)) / cam_zoom
-            world_y = cam_y + (my - (viewport_height / 2.0)) / cam_zoom
-
-            gx = world_x / cell_size
-            gy = world_y / cell_size
+            gx, gy = self._screen_to_grid(mx, my)
 
             h, w = self.grid.shape[:2]
             if gx < 0 or gx >= w or gy < 0 or gy >= h:
@@ -110,6 +101,7 @@ class Controller:
             # 找到最近的标记
             min_dist = float('inf')
             closest_marker = None
+            threshold = 5.0  # 设置一个阈值，用于判断标记是否在点击位置附近
             for marker in markers:
                 marker_x = marker["x"]
                 marker_y = marker["y"]
@@ -118,26 +110,9 @@ class Controller:
                     min_dist = dist
                     closest_marker = marker
 
-            if closest_marker is None:
-                print("[示例] 未找到最近的标记")
+            if closest_marker is None or min_dist > threshold:
+                print("[示例] 未找到最近的标记或超出选择阈值")
                 return None
-            '''
-            # 计算从标记到鼠标位置的方向向量
-            vx = gx - closest_marker["x"]
-            vy = gy - closest_marker["y"]
-
-            # 归一化向量
-            vec_len = (vx ** 2 + vy ** 2) ** 0.5
-            if vec_len > 0:
-                vx /= vec_len
-                vy /= vec_len
-            
-            # 使用微小向量创建函数
-            self.marker_system.add_vector_at_position(self.grid, x=closest_marker["x"], y=closest_marker["y"], vx=vx, vy=vy)
-            
-            print(f"[示例] 在标记位置({closest_marker['x']:.2f}, {closest_marker['y']:.2f})添加向量({vx:.2f}, {vy:.2f})")
-            '''           
-            self.app_core.state_manager.update({"view_changed": True, "grid_updated": True})
 
             return closest_marker
         except Exception as e:
@@ -150,24 +125,19 @@ class Controller:
             return
 
         try:
-            cam_x = self.app_core.state_manager.get("cam_x", 0.0)
-            cam_y = self.app_core.state_manager.get("cam_y", 0.0)
-            cam_zoom = self.app_core.state_manager.get("cam_zoom", 1.0)
-            viewport_width = self.app_core.state_manager.get("viewport_width", 800)
-            viewport_height = self.app_core.state_manager.get("viewport_height", 600)
-            cell_size = self.app_core.config_manager.get("cell_size", 1.0)
-
-            world_x = cam_x + (mx - (viewport_width / 2.0)) / cam_zoom
-            world_y = cam_y + (my - (viewport_height / 2.0)) / cam_zoom
-
-            gx = float(world_x / cell_size)
-            gy = float(world_y / cell_size)
+            gx, gy = self._screen_to_grid(mx, my)
 
             h, w = self.grid.shape[:2]
             if gx >= 0 and gx < w and gy >= 0 and gy < h:
                 # 计算从标记到鼠标位置的方向向量
                 vx = gx - selected_marker["x"]
                 vy = gy - selected_marker["y"]
+                # 归一化向量
+                vec_len = (vx ** 2 + vy ** 2) ** 0.5
+                drag_scale = 10.0  # 固定拖拽向量缩放
+                if vec_len > 0:
+                    vx /= vec_len * drag_scale
+                    vy /= vec_len * drag_scale
 
                 # 使用微小向量创建函数
                 self.marker_system.add_vector_at_position(self.grid, x=selected_marker["x"], y=selected_marker["y"], vx=vx, vy=vy)
@@ -176,32 +146,39 @@ class Controller:
         except Exception as e:
             print(f"[错误] 处理左键持续按下时发生异常: {e}")
 
-    def generate_tangential_pattern(self):
-        """生成切向模式"""
+    def handle_mouse_drag_view(self, dx: float, dy: float):
+        """处理视图拖拽"""
         try:
-            # 这里可以实现切向模式的生成逻辑
-            # 例如，创建一个围绕中心的旋转向量场
-            h, w = self.grid.shape[:2]
-            center_x, center_y = w // 2, h // 2
+            cam_zoom = self.app_core.state_manager.get("cam_zoom", 1.0)
 
-            for y in range(h):
-                for x in range(w):
-                    # 计算从中心到当前位置的向量
-                    dx = x - center_x
-                    dy = y - center_y
-                    dist = (dx**2 + dy**2)**0.5
+            world_dx = dx / cam_zoom
+            world_dy = dy / cam_zoom
 
-                    if dist > 0:
-                        # 切向向量：垂直于径向向量
-                        tx = -dy / dist
-                        ty = dx / dist
+            cam_x = self.app_core.state_manager.get("cam_x", 0.0) - world_dx
+            cam_y = self.app_core.state_manager.get("cam_y", 0.0) - world_dy
 
-                        # 设置向量场
-                        self.grid[y, x, 0] = tx * 0.5  # vx
-                        self.grid[y, x, 1] = ty * 0.5  # vy
-
-            self.app_core.state_manager.update({"view_changed": True, "grid_updated": True})
-            print("[控制器] 已生成切向模式")
+            self.app_core.state_manager.update({
+                "cam_x": cam_x,
+                "cam_y": cam_y,
+                "view_changed": True
+            })
         except Exception as e:
-            print(f"[错误] 生成切向模式时发生异常: {e}")
+            print(f"[错误] 处理视图拖拽 异常: {e}")
+
+    def handle_scroll_zoom(self, scroll_y: float):
+        """处理滚轮缩放"""
+        try:
+            cam_zoom = self.app_core.state_manager.get("cam_zoom", 1.0)
+            zoom_speed = 0.5
+            zoom_min = 0.1
+            zoom_max = 10.0
+            cam_zoom += scroll_y * zoom_speed
+            cam_zoom = max(zoom_min, min(zoom_max, cam_zoom))
+
+            self.app_core.state_manager.update({
+                "cam_zoom": cam_zoom,
+                "view_changed": True
+            })
+        except Exception as e:
+            print(f"[错误] 处理滚轮缩放 异常: {e}")
 

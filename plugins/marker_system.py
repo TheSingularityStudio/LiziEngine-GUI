@@ -16,11 +16,6 @@ class MarkerSystem:
         # 标记列表，存储浮点网格坐标 {'x':float,'y':float,'mag':float,'vx':float,'vy':float}
         self.markers = []
 
-    def update(self):
-        """更新标记系统"""
-        # 这里可以添加更新逻辑，如果需要的话
-        pass
-
     def add_marker(self, x: float, y: float, mag: float = 1.0, vx: float = 0.0, vy: float = 0.0) -> None:
         """添加一个新标记
 
@@ -48,15 +43,14 @@ class MarkerSystem:
         """
         return list(self.markers)
 
-    def update_markers(self, grid: np.ndarray, move_factor: float = 1.0, clear_threshold: float = 1e-3) -> None:
+    def update_markers(self, grid: np.ndarray, dt: float = 1.0, clear_threshold: float = 1e-3) -> None:
         """根据浮点坐标处拟合向量移动标记。
 
-        算法：在标记的浮点坐标处使用双线性插值拟合向量值，将标记按 fitted_v * move_factor 偏移。
+        算法：在标记的浮点坐标处使用双线性插值拟合向量值，将标记按 fitted_v * dt 偏移。
 
         Args:
             grid: 向量场网格
-            neighborhood: 邻域大小（保留参数以保持兼容性）
-            move_factor: 移动因子
+            dt: 时间步长
             clear_threshold: 清除阈值，低于此拟合向量幅值的标记将被清除
         """
         if not hasattr(grid, "ndim"):
@@ -75,39 +69,42 @@ class MarkerSystem:
             return
 
         h, w = grid.shape[0], grid.shape[1]
+        cell_size = self.app_core.config_manager.get("cell_size", 1.0)
 
         # 期望 grid 最后一维至少 2，代表 vx, vy
         new_markers = []
 
         for m in self.markers:
-            x = m.get("x", 0.0)
-            y = m.get("y", 0.0)
-
+            x = m["x"]
+            y = m["y"]
+            mag = m["mag"]
+            vx = m["vx"]
+            vy = m["vy"]
             try:
                 # 在浮点坐标处拟合向量值
-                fitted_vx, fitted_vy = self.fit_vector_at_position_fp32(grid, x, y)
-                '''
-                # 计算拟合向量的幅值
-                fitted_mag = np.sqrt(fitted_vx**2 + fitted_vy**2)
-
-                # 如果拟合向量幅值低于阈值，自动移除该标记
-                if fitted_mag < clear_threshold:
-                    continue
-                '''
+                fitted_vx, fitted_vy = self.fit_vector_at_position(grid, x, y)
 
                 # 设置标记的速度属性
-                m["vx"] = fitted_vx * move_factor
-                m["vy"] = fitted_vy * move_factor
+                if fitted_vx ** 2 + fitted_vy ** 2 > 0.001 ** 2:
+                    vx += fitted_vx * 1/mag
+                    vy += fitted_vy * 1/mag
 
-                # 使用速度更新浮点位置
-                new_x = max(0.0, min(w - 1.0, x + m["vx"]))
-                new_y = max(0.0, min(h - 1.0, y + m["vy"]))
+                # 限制速度不超过单元格大小
+                if (vx ** 2 + vy ** 2) ** 0.5 > cell_size:  # 限制速度不超过单元格大小
+                    vx = vx / (vx ** 2 + vy ** 2) ** 0.5 * cell_size
+                    vy = vy / (vx ** 2 + vy ** 2) ** 0.5 * cell_size
+
+                # 使用速度更新浮点位置（带反弹后的速度）
+                new_x = max(0.0, min(w - 1.0, x + vx * dt))
+                new_y = max(0.0, min(h - 1.0, y + vy * dt))
 
                 # 创建微小向量影响
-                self.create_tiny_vector(grid, new_x, new_y, m["mag"])
+                self.create_tiny_vector(grid, new_x, new_y, mag)
 
                 m["x"] = new_x
                 m["y"] = new_y
+                m["vx"] = vx
+                m["vy"] = vy
                 new_markers.append(m)
 
             except Exception as e:
@@ -134,9 +131,12 @@ class MarkerSystem:
         # 在指定位置拟合一个向量
         return self.vector_calculator.fit_vector_at_position(grid, x, y)
     
-    def fit_vector_at_position_fp32(self, grid: np.ndarray, x: float, y: float) -> Tuple[float, float]:
-        # 在指定位置拟合一个向量
-        return self.vector_calculator.fit_vector_at_position_fp32(grid, x, y)
+    def update_field_and_markers(self, grid: np.ndarray) -> None:
+        # 更新向量场和标记
+        self.update_markers(grid)
+        self.vector_calculator.update_grid_with_adjacent_sum(grid)
+        # 再次更新标记
+        self.update_markers(grid)
 
     def _sync_to_state_manager(self) -> None:
         """将标记列表同步到状态管理器"""

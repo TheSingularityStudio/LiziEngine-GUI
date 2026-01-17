@@ -3,7 +3,6 @@ LiziEngine 示例：重力场模拟
 """
 import sys
 import os
-import numpy as np
 
 # 添加项目根目录到Python路径
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -12,9 +11,7 @@ from lizi_engine.core.container import container
 from lizi_engine.core.app import AppCore
 from lizi_engine.window.window import Window
 from lizi_engine.compute.vector_field import vector_calculator
-from plugins.ui import UIManager
-from plugins.controller import Controller
-from plugins.marker_system import MarkerSystem
+from lizi_engine.core.plugin import UIManager, Controller, MarkerSystem, add_inward_edge_vectors
 
 def main():
     """主函数"""
@@ -67,11 +64,13 @@ def main():
 
     # 定义回调函数
     def on_space_press():
-        """重新生成切线模式"""
+        """重新生成切线模式并添加边缘向内向量"""
         center = (grid.shape[1] // 2, grid.shape[0] // 2)
         vector_calculator.create_tangential_pattern(grid, center=center, radius=50, magnitude=1.0)
+        # 添加边缘向内向量
+        add_inward_edge_vectors(grid, magnitude=0.5)
         app_core.state_manager.update({"view_changed": True, "grid_updated": True})
-        print("[示例] 已重新生成切线模式")
+        print("[示例] 已重新生成切线模式并添加边缘向内向量")
 
     def on_u_press():
         """切换实时更新"""
@@ -86,9 +85,8 @@ def main():
         # 更新窗口和处理 UI 事件
         window.update()
 
-        # 实时更新向量场（如果启用）
-        if ui_manager.enable_update:
-            vector_calculator.update_grid_with_adjacent_sum(grid)
+        #清空网格
+        grid.fill(0.0)
 
         # 处理鼠标拖动与滚轮
         try:
@@ -98,20 +96,29 @@ def main():
 
         ui_manager.process_scroll()
 
-        # 更新标记位置（可选）
-        try:
-            ui_manager.update_markers(grid)
-            
-            #给每个标记添加重力向量
-            markers = marker_system.get_markers()
-            for marker in markers:
-                marker_system.add_vector_at_position(grid, x=marker["x"], y=marker["y"], vy= 0.1, vx=0.0)
-            
-        except Exception as e:
-            print(f"[错误] 更新标记异常: {e}")
+        # 实时更新向量场（如果启用）
+        if ui_manager.enable_update:
+            # 创建边缘向内向量
+            add_inward_edge_vectors(grid, magnitude=0.2)
+
+            # 更新标记位置（可选）
+            try:
+                #给每个标记添加重力向量
+                for marker in marker_system.markers:
+                    vector_calculator.add_vector_at_position(grid, marker['x'], marker['y'], 0.0, 0.02)
+                    # 摩擦力
+                    marker['vx'] *= 0.9
+                    marker['vy'] *= 0.9
+                # 更新向量场和标记
+                marker_system.update_field_and_markers(grid)
+            except Exception as e:
+                print(f"[错误] 更新标记异常: {e}")
 
         # 渲染
         window.render(grid)
+
+        # FPS 限制
+        app_core.fps_limiter.limit_fps()
 
     # 清理资源
     print("[示例] 清理资源...")
