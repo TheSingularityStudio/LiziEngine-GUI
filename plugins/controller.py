@@ -72,7 +72,7 @@ class Controller:
                 print(f"[示例] 点击位置超出网格: ({gx}, {gy})")
                 return
 
-            mag = self.app_core.config_manager.get("vector_magnitude", 1.0)
+            mag = 1.0  # 固定向量大小
             magnitude = mag if self.vector_field_direction else -mag
 
             # 同时创建一个标记，初始放在点击处（浮点位置）
@@ -101,7 +101,7 @@ class Controller:
             # 找到最近的标记
             min_dist = float('inf')
             closest_marker = None
-            threshold = self.app_core.config_manager.get("marker_selection_threshold", 5.0)
+            threshold = 5.0  # 设置一个阈值，用于判断标记是否在点击位置附近
             for marker in markers:
                 marker_x = marker["x"]
                 marker_y = marker["y"]
@@ -134,7 +134,7 @@ class Controller:
                 vy = gy - selected_marker["y"]
                 # 归一化向量
                 vec_len = (vx ** 2 + vy ** 2) ** 0.5
-                drag_scale = self.app_core.config_manager.get("drag_vector_scale", 10.0)
+                drag_scale = 10.0  # 固定拖拽向量缩放
                 if vec_len > 0:
                     vx /= vec_len * drag_scale
                     vy /= vec_len * drag_scale
@@ -163,7 +163,7 @@ class Controller:
                 "view_changed": True
             })
         except Exception as e:
-            print(f"[错误] handle_mouse_drag_view 异常: {e}")
+            print(f"[错误] 处理视图拖拽 异常: {e}")
 
     def handle_scroll_zoom(self, scroll_y: float):
         """处理滚轮缩放"""
@@ -180,5 +180,5 @@ class Controller:
                 "view_changed": True
             })
         except Exception as e:
-            print(f"[错误] handle_scroll_zoom 异常: {e}")
+            print(f"[错误] 处理滚轮缩放 异常: {e}")
 
