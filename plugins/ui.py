@@ -6,6 +6,7 @@ UI 管理模块：封装用户交互回调、鼠标拖拽与滚轮缩放处理
 from typing import Tuple
 import numpy as np
 from lizi_engine.input import input_handler, KeyMap, MouseMap
+from lizi_engine.core.state import state_manager
 
 
 class UIManager:
@@ -30,57 +31,14 @@ class UIManager:
     def register_callbacks(self, grid: np.ndarray, on_space=None, on_r=None, on_g=None, on_c=None, on_u=None, on_v=None, on_f=None):
         self._grid = grid
 
-        def on_space_press():
-            # 优先使用外部提供的回调（用于切换模式等）
-            if callable(on_space):
+        def on_u_press():
+            if callable(on_u):
                 try:
-                    on_space()
+                    on_u()
                     return
                 except Exception as e:
-                    print(f"[错误] on_space 回调异常: {e}")
-            # 无外部回调时不执行默认行为
-
-        def on_r_press():
-            if callable(on_r):
-                try:
-                    on_r()
-                    return
-                except Exception as e:
-                    print(f"[错误] on_r 回调异常: {e}")
-            try:
-                self.controller.reset_view()
-            except Exception as e:
-                print(f"[错误] reset_view 异常: {e}")
-
-        def on_g_press():
-            if callable(on_g):
-                try:
-                    on_g()
-                    return
-                except Exception as e:
-                    print(f"[错误] on_g 回调异常: {e}")
-            try:
-                self.controller.toggle_grid()
-            except Exception as e:
-                print(f"[错误] toggle_grid 异常: {e}")
-
-        def on_c_press():
-            if callable(on_c):
-                try:
-                    on_c()
-                    return
-                except Exception as e:
-                    print(f"[错误] on_c 回调异常: {e}")
-            try:
-                self.controller.clear_grid()
-            except Exception as e:
-                print(f"[错误] clear_grid 异常: {e}")
-            try:
-                # 标记系统也应清空标记
-                self.marker_system.clear_markers()
-            except Exception as e:
-                print(f"[错误] clear_markers 异常: {e}")
-
+                    print(f"[错误] on_u 回调异常: {e}")
+        
         def on_v_press():
             if callable(on_v):
                 try:
@@ -91,15 +49,7 @@ class UIManager:
             try:
                 self.controller.switch_vector_field_direction()
             except Exception as e:
-                print(f"[错误] switch_vector_field_direction 异常: {e}")
-
-        def on_u_press():
-            if callable(on_u):
-                try:
-                    on_u()
-                    return
-                except Exception as e:
-                    print(f"[错误] on_u 回调异常: {e}")
+                print(f"[错误] 切换向量场方向 异常: {e}")
 
         def on_f_press():
             if callable(on_f):
@@ -108,8 +58,7 @@ class UIManager:
                     return
                 except Exception as e:
                     print(f"[错误] on_f 回调异常: {e}")
-            try:
-                from lizi_engine.core.state import state_manager
+            try:          
                 mx = state_manager.get("mouse_x", 0.0)
                 my = state_manager.get("mouse_y", 0.0)
                 self.controller.place_vector_field(mx, my)
@@ -146,13 +95,9 @@ class UIManager:
             self._mouse_buttons_pressed.discard(2)
 
         # 注册键盘和鼠标回调 (使用PyQt6动作常量: 1=PRESS, 0=RELEASE)
-        input_handler.register_key_callback(KeyMap.SPACE, 1, on_space_press)  # PRESS
-        input_handler.register_key_callback(KeyMap.R, 1, on_r_press)  # PRESS
-        input_handler.register_key_callback(KeyMap.G, 1, on_g_press)  # PRESS
-        input_handler.register_key_callback(KeyMap.C, 1, on_c_press)  # PRESS
         input_handler.register_key_callback(KeyMap.U, 1, on_u_press)  # PRESS
-        input_handler.register_key_callback(KeyMap.V, 1, on_v_press)  # PRESS
         input_handler.register_key_callback(KeyMap.F, 1, on_f_press)  # PRESS
+        input_handler.register_key_callback(KeyMap.V, 1, on_v_press)  # PRESS
 
         input_handler.register_mouse_callback(MouseMap.LEFT, 1, on_mouse_left_press)  # PRESS
         input_handler.register_mouse_callback(MouseMap.LEFT, 0, on_mouse_left_release)  # RELEASE
@@ -199,14 +144,3 @@ class UIManager:
                 print(f"[错误] process_scroll 异常: {e}")
 
             window._scroll_y = 0
-
-    def update_markers(self, grid: np.ndarray, dt: float = 1.0, clear_threshold: float = 1e-3):
-        """使用标记系统更新标记位置
-
-        Args:
-            grid: 向量场网格
-            dt: 时间步长
-            clear_threshold: 清除阈值，低于此平均幅值的标记将被清除
-        """
-        self.marker_system.update_markers(grid, dt, clear_threshold)
-

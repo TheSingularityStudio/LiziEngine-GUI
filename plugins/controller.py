@@ -24,6 +24,7 @@ class Controller(EventHandler):
         event_bus.subscribe(EventType.MOUSE_CLICKED, self)
         event_bus.subscribe(EventType.MOUSE_MOVED, self)
         event_bus.subscribe(EventType.MOUSE_SCROLLED, self)
+        event_bus.subscribe(EventType.GRID_CLEARED, self)
 
         # 鼠标拖拽状态
         self.selected_marker = None
@@ -47,25 +48,6 @@ class Controller(EventHandler):
         gy = world_y / cell_size
 
         return gx, gy
-
-    def reset_view(self):
-        """重置视图"""
-        try:
-            self.app_core.view_manager.reset_view(self.grid.shape[1], self.grid.shape[0])
-        except Exception as e:
-            print(f"[错误] reset_view 异常: {e}")
-
-    def toggle_grid(self):
-        """切换网格显示"""
-        show_grid = self.app_core.state_manager.get("show_grid", True)
-        self.app_core.state_manager.set("show_grid", not show_grid)
-
-    def clear_grid(self):
-        """清空网格"""
-        try:
-            self.grid.fill(0.0)
-        except Exception as e:
-            print(f"[错误] clear_grid 异常: {e}")
 
     def switch_vector_field_direction(self):
         """切换向量场方向"""
@@ -253,3 +235,8 @@ class Controller(EventHandler):
             scroll_y = offset[1]
             self.handle_scroll_zoom(scroll_y)
 
+        elif event.type == EventType.GRID_CLEARED:
+            # 网格已清空，重置标记
+            self.marker_system.clear_markers()
+            print("[示例] 网格已清空，标记系统已重置")
+            
