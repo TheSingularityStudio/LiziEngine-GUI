@@ -69,8 +69,7 @@ class UIManager:
             try:
                 # 添加左键到按下按钮集合
                 self._mouse_buttons_pressed.add(1)  # 左键
-
-                from lizi_engine.core.state import state_manager
+                
                 mx = state_manager.get("mouse_x", 0.0)
                 my = state_manager.get("mouse_y", 0.0)
                 self._selected_marker = self.controller.handle_mouse_left_press(mx, my)

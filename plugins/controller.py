@@ -41,8 +41,7 @@ class Controller(EventHandler):
         cell_size = self.app_core.state_manager.get("cell_size", 1.0)
 
         world_x = cam_x + (mx - (viewport_width / 2.0)) / cam_zoom
-        # 由于渲染时移除了y轴翻转，现在需要翻转y坐标转换以匹配正确的方向
-        world_y = cam_y - (my - (viewport_height / 2.0)) / cam_zoom
+        world_y = cam_y + (my - (viewport_height / 2.0)) / cam_zoom
 
         gx = world_x / cell_size
         gy = world_y / cell_size
@@ -150,9 +149,8 @@ class Controller(EventHandler):
             world_dx = dx / cam_zoom
             world_dy = dy / cam_zoom
 
-            # Fix inverted panning: negate deltas for correct direction
             cam_x = self.app_core.state_manager.get("cam_x", 0.0) - world_dx
-            cam_y = self.app_core.state_manager.get("cam_y", 0.0) + world_dy
+            cam_y = self.app_core.state_manager.get("cam_y", 0.0) - world_dy
 
             self.app_core.state_manager.update({
                 "cam_x": cam_x,
@@ -208,7 +206,6 @@ class Controller(EventHandler):
             button = event.data.get("button", 0)
             position = event.data.get("position", (0.0, 0.0))
             mx, my = position
-
             if button == 1:  # 左键
                 self.selected_marker = self.handle_mouse_left_press(mx, my)
                 if self.selected_marker:

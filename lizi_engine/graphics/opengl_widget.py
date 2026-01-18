@@ -59,7 +59,22 @@ class OpenGLWidget(QOpenGLWidget):
 
     def resizeGL(self, width: int, height: int) -> None:
         """调整OpenGL视口大小"""
-        glViewport(0, 0, width, height)
+        # 输入验证
+        if width <= 0 or height <= 0:
+            print(f"[OpenGL Widget] 无效的视口尺寸: width={width}, height={height}")
+            return
+
+        try:
+            # 设置视口
+            glViewport(0, 0, width, height)
+
+            # 更新状态管理器中的视口尺寸
+            state_manager.set("viewport_width", width)
+            state_manager.set("viewport_height", height)
+
+            print(f"[OpenGL Widget] 视口调整为: {width}x{height}")
+        except Exception as e:
+            print(f"[OpenGL Widget] 调整视口失败: {e}")
 
     def paintGL(self) -> None:
         """渲染OpenGL内容"""
@@ -79,13 +94,17 @@ class OpenGLWidget(QOpenGLWidget):
             # 渲染背景
             self._renderer.render_background()
 
+            # 获取视口尺寸
+            viewport_width = state_manager.get("viewport_width", self.width())
+            viewport_height = state_manager.get("viewport_height", self.height())
+
             # 渲染标记
-            self._renderer.render_markers(cell_size, cam_x, cam_y, cam_zoom, self.width(), self.height())
+            self._renderer.render_markers(cell_size, cam_x, cam_y, cam_zoom, viewport_width, viewport_height)
 
             # 渲染网格和向量场
             if grid is not None:
-                self._renderer.render_grid(grid, cell_size, cam_x, cam_y, cam_zoom, self.width(), self.height())
-                self._renderer.render_vector_field(grid, cell_size, cam_x, cam_y, cam_zoom, self.width(), self.height())
+                self._renderer.render_grid(grid, cell_size, cam_x, cam_y, cam_zoom, viewport_width, viewport_height)
+                self._renderer.render_vector_field(grid, cell_size, cam_x, cam_y, cam_zoom, viewport_width, viewport_height)
 
         except Exception as e:
             print(f"[OpenGL Widget] 渲染错误: {e}")

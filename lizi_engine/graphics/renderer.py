@@ -103,7 +103,7 @@ class VectorFieldRenderer(EventHandler):
         uniform vec2 u_half;
         void main() {
             vec2 ndc = (a_pos - u_center) / u_half;
-            gl_Position = vec4(ndc, 0.0, 1.0);
+            gl_Position = vec4(ndc.x, -ndc.y, 0.0, 1.0);
             v_col = a_col;
         }
         """

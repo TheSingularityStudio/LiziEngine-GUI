@@ -190,9 +190,10 @@ class MainWindow(QMainWindow):
         cursor_pos = QCursor.pos()
         window_pos = self.mapFromGlobal(cursor_pos)
         if self._opengl_widget:
+            central_pos = self.centralWidget().pos()
             widget_pos = self._opengl_widget.pos()
-            relative_x = window_pos.x() - widget_pos.x()
-            relative_y = window_pos.y() - widget_pos.y()
+            relative_x = window_pos.x() - (central_pos.x() + widget_pos.x())
+            relative_y = window_pos.y() - (central_pos.y() + widget_pos.y())
         else:
             relative_x = window_pos.x()
             relative_y = window_pos.y()
@@ -251,9 +252,10 @@ class MainWindow(QMainWindow):
 
         # 获取鼠标位置相对于OpenGL widget的坐标
         if self._opengl_widget:
+            central_pos = self.centralWidget().pos()
             widget_pos = self._opengl_widget.pos()
-            relative_x = pos.x() - widget_pos.x()
-            relative_y = pos.y() - widget_pos.y()
+            relative_x = pos.x() - (central_pos.x() + widget_pos.x())
+            relative_y = pos.y() - (central_pos.y() + widget_pos.y())
         else:
             relative_x = pos.x()
             relative_y = pos.y()
@@ -274,9 +276,10 @@ class MainWindow(QMainWindow):
 
         # 获取鼠标位置相对于OpenGL widget的坐标
         if self._opengl_widget:
+            central_pos = self.centralWidget().pos()
             widget_pos = self._opengl_widget.pos()
-            relative_x = pos.x() - widget_pos.x()
-            relative_y = pos.y() - widget_pos.y()
+            relative_x = pos.x() - (central_pos.x() + widget_pos.x())
+            relative_y = pos.y() - (central_pos.y() + widget_pos.y())
         else:
             relative_x = pos.x()
             relative_y = pos.y()
@@ -296,9 +299,10 @@ class MainWindow(QMainWindow):
 
         # 获取鼠标位置相对于OpenGL widget的坐标
         if self._opengl_widget:
+            central_pos = self.centralWidget().pos()
             widget_pos = self._opengl_widget.pos()
-            relative_x = pos.x() - widget_pos.x()
-            relative_y = pos.y() - widget_pos.y()
+            relative_x = pos.x() - (central_pos.x() + widget_pos.x())
+            relative_y = pos.y() - (central_pos.y() + widget_pos.y())
         else:
             relative_x = pos.x()
             relative_y = pos.y()
@@ -319,9 +323,10 @@ class MainWindow(QMainWindow):
 
         # 获取鼠标位置相对于OpenGL widget的坐标
         if self._opengl_widget:
+            central_pos = self.centralWidget().pos()
             widget_pos = self._opengl_widget.pos()
-            relative_x = pos.x() - widget_pos.x()
-            relative_y = pos.y() - widget_pos.y()
+            relative_x = pos.x() - (central_pos.x() + widget_pos.x())
+            relative_y = pos.y() - (central_pos.y() + widget_pos.y())
         else:
             relative_x = pos.x()
             relative_y = pos.y()
