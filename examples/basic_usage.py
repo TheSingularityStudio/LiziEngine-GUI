@@ -4,7 +4,6 @@ LiziEngine 基本使用示例
 """
 import sys
 import os
-import numpy as np
 
 # 添加项目根目录到Python路径
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -13,9 +12,7 @@ from lizi_engine.core.container import container
 from lizi_engine.core.app import AppCore
 from lizi_engine.window.window import Window
 from lizi_engine.compute.vector_field import vector_calculator
-from plugins.ui import UIManager
-from plugins.controller import Controller
-from plugins.marker_system import MarkerSystem
+from lizi_engine.core.plugin import UIManager, Controller, MarkerSystem, add_inward_edge_vectors
 
 def main():
     """主函数"""
@@ -44,7 +41,7 @@ def main():
         return
 
     # 获取网格
-    grid = app_core.grid_manager.init_grid(640, 480)
+    grid = app_core.grid_manager.init_grid(64, 64)
 
     # 设置示例向量场 - 创建旋转模式
     vector_calculator.create_tangential_pattern(grid, magnitude=1.0)
@@ -84,9 +81,8 @@ def main():
         # 更新窗口和处理 UI 事件
         window.update()
 
-        # 实时更新向量场（如果启用）
-        if ui_manager.enable_update:
-            vector_calculator.update_grid_with_adjacent_sum(grid)
+        # 清空网格
+        grid.fill(0.0)
 
         # 处理鼠标拖动与滚轮
         try:
@@ -96,14 +92,27 @@ def main():
 
         ui_manager.process_scroll()
 
-        # 更新标记位置（可选）
-        try:
-            ui_manager.update_markers(grid)
-        except Exception as e:
-            print(f"[错误] 更新标记异常: {e}")
+        # 实时更新向量场（如果启用）
+        if ui_manager.enable_update:
+            # 创建边缘向内向量
+            add_inward_edge_vectors(grid, magnitude=0.5)
+
+            # 更新标记位置（可选）
+            try:
+                #给每个标记添加摩擦力
+                for marker in marker_system.markers:
+                    marker['vx'] *= 0.99
+                    marker['vy'] *= 0.99
+                # 更新向量场和标记
+                marker_system.update_field_and_markers(grid)
+            except Exception as e:
+                print(f"[错误] 更新标记异常: {e}")
 
         # 渲染
         window.render(grid)
+
+        # FPS 限制
+        app_core.fps_limiter.limit_fps()
 
     # 清理资源
     print("[示例] 清理资源...")
