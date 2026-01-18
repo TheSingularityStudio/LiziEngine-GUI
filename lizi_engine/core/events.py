@@ -56,6 +56,8 @@ class EventType(Enum):
     # 键盘事件
     KEY_PRESSED = "key_pressed"
     KEY_RELEASED = "key_released"
+    SPACE_PRESSED = "space_pressed"
+    TOGGLE_UPDATE = "toggle_update"
 
 @dataclass
 class Event:

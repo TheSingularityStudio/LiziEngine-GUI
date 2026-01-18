@@ -5,9 +5,10 @@ Controller 插件：处理复杂的业务逻辑
 from typing import Tuple
 import numpy as np
 from lizi_engine.input import input_handler
+from lizi_engine.core.events import Event, EventType, event_bus, EventHandler
 
 
-class Controller:
+class Controller(EventHandler):
     def __init__(self, app_core, vector_calculator, marker_system, grid: np.ndarray):
         self.app_core = app_core
         self.vector_calculator = vector_calculator
@@ -16,6 +17,19 @@ class Controller:
 
         # 向量场方向状态：True表示朝外，False表示朝内
         self.vector_field_direction = True
+
+        # 订阅事件
+        event_bus.subscribe(EventType.SPACE_PRESSED, self)
+        event_bus.subscribe(EventType.TOGGLE_UPDATE, self)
+        event_bus.subscribe(EventType.MOUSE_CLICKED, self)
+        event_bus.subscribe(EventType.MOUSE_MOVED, self)
+        event_bus.subscribe(EventType.MOUSE_SCROLLED, self)
+        event_bus.subscribe(EventType.GRID_CLEARED, self)
+
+        # 鼠标拖拽状态
+        self.selected_marker = None
+        self.is_dragging = False
+        self.last_mouse_pos = (0.0, 0.0)
 
     def _screen_to_grid(self, mx: float, my: float) -> Tuple[float, float]:
         """将屏幕坐标转换为网格坐标"""
@@ -33,25 +47,6 @@ class Controller:
         gy = world_y / cell_size
 
         return gx, gy
-
-    def reset_view(self):
-        """重置视图"""
-        try:
-            self.app_core.view_manager.reset_view(self.grid.shape[1], self.grid.shape[0])
-        except Exception as e:
-            print(f"[错误] reset_view 异常: {e}")
-
-    def toggle_grid(self):
-        """切换网格显示"""
-        show_grid = self.app_core.state_manager.get("show_grid", True)
-        self.app_core.state_manager.set("show_grid", not show_grid)
-
-    def clear_grid(self):
-        """清空网格"""
-        try:
-            self.grid.fill(0.0)
-        except Exception as e:
-            print(f"[错误] clear_grid 异常: {e}")
 
     def switch_vector_field_direction(self):
         """切换向量场方向"""
@@ -162,6 +157,9 @@ class Controller:
                 "cam_y": cam_y,
                 "view_changed": True
             })
+
+            # 发布视图变更事件
+            event_bus.publish(Event(EventType.VIEW_CHANGED, {}, "Controller"))
         except Exception as e:
             print(f"[错误] 处理视图拖拽 异常: {e}")
 
@@ -179,6 +177,63 @@ class Controller:
                 "cam_zoom": cam_zoom,
                 "view_changed": True
             })
+
+            # 发布视图变更事件
+            event_bus.publish(Event(EventType.VIEW_CHANGED, {}, "Controller"))
         except Exception as e:
             print(f"[错误] 处理滚轮缩放 异常: {e}")
 
+    def handle(self, event: Event) -> None:
+        """处理事件"""
+        if event.type == EventType.SPACE_PRESSED:
+            # 空格键 - 重新生成切线模式
+            print("[示例] 重新生成切线模式")
+            self.vector_calculator.create_tangential_pattern(self.grid, magnitude=1.0)
+            try:
+                self.app_core.view_manager.reset_view(self.grid.shape[1], self.grid.shape[0])
+            except Exception:
+                pass
+
+        elif event.type == EventType.TOGGLE_UPDATE:
+            # U键 - 切换实时更新
+            enable_update = self.app_core.state_manager.get("enable_update", True)
+            self.app_core.state_manager.set("enable_update", not enable_update)
+            status = "启用" if not enable_update else "禁用"
+            print(f"[示例] 实时更新已{status}")
+
+        elif event.type == EventType.MOUSE_CLICKED:
+            # 鼠标点击
+            button = event.data.get("button", 0)
+            position = event.data.get("position", (0.0, 0.0))
+            mx, my = position
+            if button == 1:  # 左键
+                self.selected_marker = self.handle_mouse_left_press(mx, my)
+                if self.selected_marker:
+                    self.is_dragging = True
+                    print(f"[示例] 选中标记: {self.selected_marker}")
+                else:
+                    self.is_dragging = False
+
+        elif event.type == EventType.MOUSE_MOVED:
+            # 鼠标移动
+            position = event.data.get("position", (0.0, 0.0))
+            buttons = event.data.get("buttons", 0)
+            mx, my = position
+
+            if buttons & 1:  # 左键按下
+                if self.is_dragging and self.selected_marker:
+                    self.handle_mouse_drag(mx, my, self.selected_marker)
+
+            self.last_mouse_pos = (mx, my)
+
+        elif event.type == EventType.MOUSE_SCROLLED:
+            # 鼠标滚轮
+            offset = event.data.get("offset", (0.0, 0.0))
+            scroll_y = offset[1]
+            self.handle_scroll_zoom(scroll_y)
+
+        elif event.type == EventType.GRID_CLEARED:
+            # 网格已清空，重置标记
+            self.marker_system.clear_markers()
+            print("[示例] 网格已清空，标记系统已重置")
+            
